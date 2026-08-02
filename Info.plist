@@ -2,64 +2,44 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>Zielzeit</string>
-	<!-- Declared even though the strings live in Swift rather than in .lproj
-	     bundles. This is what puts Zielzeit in System Settings › General ›
-	     Language & Region › Applications, and that picker works by writing
-	     AppleLanguages into the app's own defaults domain — which is exactly what
-	     Locale.preferredLanguages reads. So declaring the two languages is what
-	     lets a user run a German Zielzeit on an English Mac. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>en</string>
-		<string>de</string>
-	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Zielzeit</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.zielzeit.Zielzeit</string>
 	<key>CFBundleExecutable</key>
 	<string>Zielzeit</string>
 	<key>CFBundleIconFile</key>
 	<string>Zielzeit</string>
 	<key>CFBundleIconName</key>
 	<string>Zielzeit</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.zielzeit.Zielzeit</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+	</array>
+	<key>CFBundleName</key>
+	<string>Zielzeit</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1</string>
+	<string>1.2</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>3</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
-	<!-- Menu bar only: no Dock icon, no app switcher entry. -->
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Zielzeit</string>
-	<!-- Sparkle. The feed is a release asset at a fixed name, which works because
-	     GitHub serves /releases/latest/download/<name> — so a filename that never
-	     changes is a URL that survives every release, the same trick Zielzeit.dmg
-	     already relies on. Consequence: a release published without an appcast.xml
-	     makes this 404 and silently stops all update checks, which is why
-	     Scripts/release verifies both the URL and the version inside it. -->
-	<key>SUFeedURL</key>
-	<string>https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest/download/appcast.xml</string>
-	<!-- There is no Developer ID to sign with, so EdDSA is not belt-and-braces
-	     here, it is the entire verification. The private half is in the
-	     maintainer's login Keychain and never goes near CI; see CONTRIBUTING. -->
-	<key>SUPublicEDKey</key>
-	<string>3bRE032IL1zIJYC7IxsqaLeN7pO7NVqvEDX94mNOWYU=</string>
-	<!-- Both of these are set so Sparkle never asks. Left unset, Sparkle shows a
-	     "check for updates automatically?" prompt on first launch; together they
-	     mean it checks, downloads and installs without a dialog. Sparkle persists
-	     them into com.zielzeit.Zielzeit, the same defaults domain as the goal. -->
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
 	<key>SUAutomaticallyUpdate</key>
 	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>3bRE032IL1zIJYC7IxsqaLeN7pO7NVqvEDX94mNOWYU=</string>
 </dict>
 </plist>
