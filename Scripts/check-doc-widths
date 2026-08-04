@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Check that every README image is published at a whole-number pixel ratio.
+
+A Retina viewer needs 2x the displayed width in device pixels. Hit that exactly
+and the blit is 1:1, while a 1x viewer halves it on a clean 2x2 box filter. Any
+other figure resamples on a fractional ratio and reads soft *however much
+resolution is thrown at it*: a 1376px source at width="480" is 1.43:1 on Retina
+and visibly mushier than a 688px source at width="344", which is smaller.
+
+That trap has been walked into twice here, and both times it looked like a
+resolution problem, so the reflex was to raise the scale -- which keeps it
+blurry at a different ratio. It is arithmetic, so it is checkable: the ratio and
+half the ratio must both be whole numbers.
+
+Run by `make check-docs` or from the post-edit hook. Deliberately not part of
+`make audit`: that target backs one badge making one claim about the source, and
+image arithmetic is not that claim. Exits 1 on a violation, naming the ratio and
+what the source width would have to be.
+"""
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+README = ROOT / "README.md"
+
+# One <img> per line throughout, so a line-wise regex is honest here rather than
+# a shortcut. Remote badges carry no width= and drop out on their own.
+IMG = re.compile(r'<img\s+src="(docs/[^"]+)"[^>]*?width="(\d+)"')
+
+
+def pixel_width(path: Path) -> int | None:
+    """The image's real width in pixels, via sips (ships with macOS)."""
+    try:
+        out = subprocess.run(
+            ["sips", "-g", "pixelWidth", str(path)],
+            capture_output=True, text=True, check=True,
+        ).stdout
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+    found = re.search(r"pixelWidth:\s*(\d+)", out)
+    return int(found.group(1)) if found else None
+
+
+def main() -> int:
+    text = README.read_text(encoding="utf-8")
+    matches = IMG.findall(text)
+    if not matches:
+        print("error: no local images found in README.md -- has the markup changed?")
+        return 1
+
+    failures = []
+    for src, displayed in matches:
+        path = ROOT / src
+        shown = int(displayed)
+        if not path.exists():
+            failures.append(f"{src}: referenced by the README but not on disk")
+            continue
+
+        source = pixel_width(path)
+        if source is None:
+            failures.append(f"{src}: could not read a pixel width")
+            continue
+
+        ratio = source / shown
+        # Both the ratio and half of it must be whole: 2x is pixel-exact on
+        # Retina, 4x is too, 1.43x is the blur.
+        if ratio != int(ratio) or (ratio / 2) != int(ratio / 2):
+            failures.append(
+                f'{src}: {source}px shown at width="{shown}" is {ratio:.2f}:1, '
+                f"which resamples. Use {shown * 2}px (2x) or {shown * 4}px (4x)."
+            )
+        else:
+            print(f'  ok  {src:28} {source}px at width="{shown}"  {int(ratio)}:1')
+
+    if failures:
+        print("\nREADME image widths:", file=sys.stderr)
+        for line in failures:
+            print(f"  FAIL  {line}", file=sys.stderr)
+        print(
+            "\nEvery image's source width must be exactly a whole even multiple of\n"
+            "its width= attribute. Regenerate with the right --scale rather than\n"
+            "changing width= to match a source that is already wrong.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(f"\n{len(matches)} README images, all at whole-number ratios.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

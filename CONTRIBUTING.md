@@ -79,6 +79,8 @@ several things that look like bugs are load-bearing.
 | Target | What it does |
 |---|---|
 | `make test` | Run the unit tests |
+| `make audit` | Check the read-only and privacy claims against the source |
+| `make check-docs` | Check every README image is published at a whole-number pixel ratio |
 | `make once` | Print the whole report as text, the fastest check of the numbers |
 | `make ui` | Rasterize the popover to `.build/ui-{light,dark}.png` |
 | `make shots` | Regenerate the README screenshots in `docs/` from synthetic data |

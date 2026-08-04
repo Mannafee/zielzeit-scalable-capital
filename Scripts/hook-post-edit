@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Post-edit hook: run the cheap invariant checks that CI runs late.
+
+Both checks here already exist as workflows, so this adds no new opinions --
+it only moves the feedback from a red badge after a push to the same turn as
+the edit. Nothing here builds or touches the network; the whole hook is grep
+and `sips`, well under a second, or it would not be worth running on an edit.
+
+  Sources/**            -> Scripts/audit, the read-only and privacy claims
+  README.md, docs/**    -> Scripts/check-doc-widths, the 2x pixel arithmetic
+
+Claude Code passes the tool call as JSON on stdin. Exit 2 feeds stderr back to
+the model as something to fix; exit 0 is silent. A malformed payload or a
+missing checker exits 0 on purpose: a broken hook must not block editing.
+"""
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def edited_path() -> str:
+    try:
+        payload = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return ""
+    tool_input = payload.get("tool_input") or {}
+    return tool_input.get("file_path") or tool_input.get("notebook_path") or ""
+
+
+def run(checker: str, subject: str) -> int:
+    script = ROOT / "Scripts" / checker
+    if not script.exists():
+        return 0
+    done = subprocess.run([str(script)], capture_output=True, text=True, cwd=ROOT)
+    if done.returncode == 0:
+        return 0
+    print(
+        f"{subject} check failed after this edit ({checker}):\n"
+        f"{done.stdout}\n{done.stderr}",
+        file=sys.stderr,
+    )
+    return 2
+
+
+def main() -> int:
+    path = edited_path()
+    if not path:
+        return 0
+
+    try:
+        rel = Path(path).resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return 0  # Outside the repo; not ours to check.
+
+    if rel.startswith("Sources/"):
+        return run("audit", "The read-only")
+    if rel == "README.md" or rel.startswith("docs/"):
+        return run("check-doc-widths", "The README image width")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

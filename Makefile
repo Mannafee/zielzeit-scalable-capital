@@ -36,6 +36,11 @@ audit: ## Check the read-only and privacy claims against the source (AUDIT_ARGS=
 	@# clone before building anything.
 	@Scripts/audit $(AUDIT_ARGS)
 
+check-docs: ## Check every README image is published at a whole-number pixel ratio
+	@# Deliberately not folded into `audit`: that target backs one badge making one
+	@# claim about the source, and image arithmetic is not that claim.
+	@Scripts/check-doc-widths
+
 once: ## Print the report as text (fast way to check the numbers)
 	swift run Zielzeit --once
 
