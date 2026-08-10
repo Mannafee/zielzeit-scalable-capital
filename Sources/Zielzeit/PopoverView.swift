@@ -294,28 +294,67 @@ struct FooterView: View {
             .buttonStyle(FooterButtonStyle())
             .help(Strings.setGoal)
 
+            // Icons on every row that does something, and on none of the rows that
+            // do not. `Label` is what puts them there: a menu `Button` given one
+            // renders symbol-then-title, so the titles stay in a single column and
+            // the symbols read as a margin down the left rather than as decoration
+            // inside the text.
+            //
+            // Two rows deliberately have none. The version line is a `Text`, not an
+            // action, and an icon would make it look like one; the language rows in
+            // the submenu are names of languages, where a repeated globe beside each
+            // says nothing the parent row has not already said.
+            //
+            // The first two reuse the symbols already on the footer buttons an inch
+            // to the left — the same action should not be a target here and a
+            // crosshair there.
             Menu {
-                Button(Strings.setGoalEllipsis) { model.beginEditingGoal() }
-                Button(Strings.refreshNow) { model.refresh() }
+                Button { model.beginEditingGoal() } label: {
+                    Label(Strings.setGoalEllipsis, systemImage: "target")
+                }
+                Button { model.refresh() } label: {
+                    Label(Strings.refreshNow, systemImage: "arrow.clockwise")
+                }
                 // Absent in the capture modes, where no updater is built at all;
                 // the version line below is Sparkle-free and still renders.
                 if let updates = UpdateController.shared {
-                    Button(Strings.checkForUpdates) { updates.checkForUpdates() }
+                    Button { updates.checkForUpdates() } label: {
+                        Label(Strings.checkForUpdates, systemImage: "arrow.down.circle")
+                    }
                 }
                 Text(Strings.versionLine(AppVersion.current))
+                // Beside the version line, with the rest of what-this-app-is, and
+                // deliberately not in the right-click fallback menu: that one
+                // exists so quitting survives a popover that will not render, and
+                // an ask has no business on a recovery path.
+                Button { NSWorkspace.shared.open(Project.repositoryURL) } label: {
+                    Label(Strings.starOnGitHub, systemImage: "star")
+                }
                 Divider()
-                Menu(Strings.language) {
+                Menu {
                     ForEach(LanguagePreference.allCases, id: \.self) { option in
                         Button(title(for: option)) { model.languagePreference = option }
                     }
+                } label: {
+                    Label(Strings.language, systemImage: "globe")
                 }
                 if LaunchAtLogin.isSupported {
-                    Button(LaunchAtLogin.isEnabled ? "✓ \(Strings.launchAtLogin)" : Strings.launchAtLogin) {
+                    // The ✓ stays in the title rather than becoming a second symbol:
+                    // the leading slot already holds what the row *does*, and the
+                    // language rows mark the one in effect exactly this way.
+                    Button {
                         try? LaunchAtLogin.toggle()
+                    } label: {
+                        Label(
+                            LaunchAtLogin.isEnabled ? "✓ \(Strings.launchAtLogin)" : Strings.launchAtLogin,
+                            systemImage: "power"
+                        )
                     }
                 }
                 Divider()
-                Button(Strings.quitZielzeit, action: onQuit)
+                Button(action: onQuit) {
+                    Label(Strings.quitZielzeit, systemImage: "xmark.circle")
+                }
             } label: {
                 Image(systemName: "ellipsis")
             }

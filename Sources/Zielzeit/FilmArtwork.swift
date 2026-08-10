@@ -52,7 +52,7 @@ enum FilmArtwork {
     private static let safetyLine = "Read-only. Nothing leaves your Mac."
     private static let endTitle = "Zielzeit"
     private static let endSub = "free · open source"
-    private static let endURL = "github.com/Mannafee/zielzeit-scalable-capital"
+    private static let endURL = Project.repositoryDisplay
 
     // MARK: - Plates
 
