@@ -221,6 +221,15 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
+    func testTheStarAskIsTranslatedAndNotTheLoanword() {
+        XCTAssertEqual(Strings.starOnGitHub, "Star on GitHub")
+        inGerman {
+            // `Stern`, matching GitHub's own German interface, so the item does not
+            // read as the one untranslated string in the menu.
+            XCTAssertEqual(Strings.starOnGitHub, "Auf GitHub einen Stern geben")
+        }
+    }
+
     // MARK: - Fixtures
     //
     // Shaped, not captured: no real balance, contribution or account figure.

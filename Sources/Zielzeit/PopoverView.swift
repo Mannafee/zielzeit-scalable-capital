@@ -303,6 +303,11 @@ struct FooterView: View {
                     Button(Strings.checkForUpdates) { updates.checkForUpdates() }
                 }
                 Text(Strings.versionLine(AppVersion.current))
+                // Beside the version line, with the rest of what-this-app-is, and
+                // deliberately not in the right-click fallback menu: that one
+                // exists so quitting survives a popover that will not render, and
+                // an ask has no business on a recovery path.
+                Button(Strings.starOnGitHub) { NSWorkspace.shared.open(Project.repositoryURL) }
                 Divider()
                 Menu(Strings.language) {
                     ForEach(LanguagePreference.allCases, id: \.self) { option in

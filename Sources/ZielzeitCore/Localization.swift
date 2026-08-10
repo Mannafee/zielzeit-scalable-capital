@@ -418,6 +418,16 @@ public enum Strings {
             "Zielzeit \(version) · aktualisiert sich automatisch"
         )
     }
+    /// The only ask the app ever makes of a reader, and it opens a browser rather
+    /// than doing anything itself: a star is a write on the reader's own GitHub
+    /// account, which nothing here has — or should want — the credentials for.
+    ///
+    /// `Stern`, not `Star`: unlike `Updates` one line up, the German word is the
+    /// one GitHub's own interface uses, so the loanword would be the odd choice
+    /// here rather than the expected one.
+    public static var starOnGitHub: String {
+        pick("Star on GitHub", "Auf GitHub einen Stern geben")
+    }
     public static var couldNotChangeLoginItem: String {
         pick("Could not change the login item", "Login-Objekt konnte nicht geändert werden")
     }
