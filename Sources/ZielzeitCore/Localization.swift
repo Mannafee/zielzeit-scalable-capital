@@ -575,6 +575,16 @@ public enum Strings {
         pick("What bought you time", "Was Zeit gebracht hat")
     }
 
+    /// The hero reframes an abstract market gain in the app's own unit: goal time.
+    public static var marketGainsInTime: String {
+        pick("Market gains, in goal time", "Marktgewinne, in Zielzeit")
+    }
+    public static var weeksWord: String { pick("weeks", "Wochen") }
+    public static var closerToGoal: String { pick("closer to your goal", "näher an deinem Ziel") }
+    public static var fartherFromGoal: String {
+        pick("farther from your goal", "weiter von deinem Ziel entfernt")
+    }
+
     /// The hero's two labels, under the two years.
     public static var yours: String { pick("yours", "mit Gewinn") }
     public static var withoutGains: String { pick("without gains", "ohne Gewinn") }
@@ -588,6 +598,10 @@ public enum Strings {
     /// Names the page's one composition mark.
     public static var theWholePortfolio: String {
         pick("What you hold", "Was du hältst")
+    }
+    public static func positionCount(_ count: Int) -> String {
+        pick(count == 1 ? "1 position" : "\(count) positions",
+             count == 1 ? "1 Position" : "\(count) Positionen")
     }
 
     /// The hero when the gains do not move the arrival *year* — the ordinary case,
@@ -651,6 +665,30 @@ public enum Strings {
     }
     public static func earned(_ amount: String) -> String {
         pick("Earned \(amount)", "Erwirtschaftet \(amount)")
+    }
+    public static var invested: String { pick("Invested", "Investiert") }
+    public static var marketGain: String { pick("Market gain", "Marktgewinn") }
+    public static var totalReturn: String { pick("Return", "Rendite") }
+
+    // MARK: - Holdings · position impact
+
+    public static var positionImpact: String { pick("Position impact", "Wirkung je Position") }
+    public static var positionImpactLegend: String {
+        pick("share · return · time", "Anteil · Rendite · Zeit")
+    }
+    public static var ofPortfolio: String { pick("of portfolio", "vom Portfolio") }
+    public static var worthNoticing: String { pick("Worth noticing", "Auffällig") }
+    public static func outlierInsight(_ name: String, gap: String, isAhead: Bool) -> String {
+        if isAhead {
+            return pick(
+                "\(name) leads your portfolio by \(gap) percentage points.",
+                "\(name) liegt \(gap) Prozentpunkte vor deinem Portfolio."
+            )
+        }
+        return pick(
+            "\(name) trails your portfolio by \(gap) percentage points.",
+            "\(name) liegt \(gap) Prozentpunkte hinter deinem Portfolio."
+        )
     }
 
     // MARK: - Holdings · since buy

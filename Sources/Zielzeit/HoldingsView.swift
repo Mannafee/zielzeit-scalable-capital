@@ -107,6 +107,10 @@ struct HoldingsView: View {
                 .overlay(alignment: .bottom) { moreBelowCue }
             }
         }
+        // The popover's parent measures its ideal width while rasterizing. German
+        // labels are wider than English, so pinning the real content width here keeps
+        // one long row from expanding the page and being cropped on both sides.
+        .frame(width: Theme.popoverWidth - (Theme.gutter * 2), alignment: .leading)
     }
 
     @ViewBuilder
@@ -122,11 +126,10 @@ struct HoldingsView: View {
                     action: onRetry
                 )
             case .ready(let report):
-                TimeContributionSection(report: report)
-                Seam()
-                PortfolioBarSection(holdings: report.holdings)
-                Seam()
-                SinceBuySection(report: report)
+                HoldingsHeroCard(report: report)
+                PortfolioOverviewCard(holdings: report.holdings)
+                PositionImpactSection(report: report)
+                PortfolioInsight(report: report)
 
                 if report.holdings.hasOutdatedQuote {
                     note(Strings.quoteOutdated, symbol: "clock.arrow.circlepath")
@@ -251,412 +254,503 @@ struct HoldingsView: View {
     }
 }
 
-// MARK: - 1. What bought you time
+// MARK: - The portfolio story
 
-/// Each holding's gain, converted into how much earlier the goal arrives.
-private struct TimeContributionSection: View {
+/// The page's visual thesis: gains are not just money, they are time returned.
+private struct HoldingsHeroCard: View {
 
     let report: HoldingsReport
 
     @Environment(\.colorScheme) private var scheme
 
-    private var contributions: TimeContributions { report.contributions }
+    private var weeks: Double? { report.contributions.totalWeeks }
+    private var isPositive: Bool { (weeks ?? 0) >= 0 }
+    private var tint: Color { isPositive ? Theme.accent : .red }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(text: Strings.whatBoughtYouTime)
+        ZStack(alignment: .topTrailing) {
+            TargetEcho(tint: tint)
+                .frame(width: 138, height: 138)
+                .offset(x: 34, y: -42)
+                .accessibilityHidden(true)
 
-            if contributions.isEmpty {
-                Text(Strings.noArrivalToMove)
-                    .font(Theme.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                hero
-                rows
-            }
-        }
-    }
+            VStack(alignment: .leading, spacing: 11) {
+                SectionLabel(text: Strings.marketGainsInTime)
 
-    /// The two years, side by side.
-    ///
-    /// The page used to lead with "8.8 weeks earlier", which is a quantity nobody has
-    /// a feel for. This states the same fact in the unit the rest of the app has spent
-    /// its life teaching: the year you are on course for, against the year you would be
-    /// on course for if the market had given you nothing. The weeks stay, underneath,
-    /// as the precise version of the gap between them.
-    @ViewBuilder
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Two years only when they are genuinely two. On a six-figure goal a few
-            // thousand euros of gains is worth weeks, so most of the time both sides
-            // land in the same year — and "2038 → 2038" with an arrow between them
-            // reads as "your gains bought you nothing", which is both discouraging
-            // and false. When they do differ, the pair is the strongest thing this
-            // page can say, so it gets the full treatment.
-            if report.yearsDiffer || report.arrivalYearWithoutGains == nil {
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    yearColumn(
-                        value: report.arrivalYear.map(String.init) ?? "—",
-                        caption: Strings.yours,
-                        emphasised: true
-                    )
-
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                        .padding(.bottom, 12)
-
-                    yearColumn(
-                        value: report.arrivalYearWithoutGains.map(String.init)
-                            ?? Strings.withoutGainsNever,
-                        caption: Strings.withoutGains,
-                        emphasised: false
-                    )
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(report.arrivalYear.map(String.init) ?? "—")
-                        .font(Theme.display(34))
-                        .foregroundStyle(Theme.accentGradient(scheme))
-                    Text(Strings.sameYearWithoutGains)
-                        .font(Theme.caption)
+                if let weeks {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(Format.weeks(weeks))
+                            .font(Theme.display(41))
+                            .foregroundStyle(isPositive
+                                ? AnyShapeStyle(Theme.accentGradient(scheme))
+                                : AnyShapeStyle(Theme.lossGradient))
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(Strings.weeksWord)
+                                .font(Theme.numeric(13))
+                            Text(isPositive ? Strings.closerToGoal : Strings.fartherFromGoal)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } else {
+                    Text(Strings.noArrivalToMove)
+                        .font(Theme.body)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-            }
 
-            if let weeks = contributions.totalWeeks {
-                HStack(spacing: 5) {
-                    Image(systemName: weeks >= 0 ? "arrow.down.right" : "arrow.up.right")
-                        .font(.system(size: 9, weight: .bold))
-                    Text(weeks >= 0
-                        ? Strings.weeksEarlier(Format.weeks(abs(weeks)))
-                        : Strings.weeksLater(Format.weeks(abs(weeks))))
-                        .font(Theme.numeric(11, weight: .semibold))
-                    // The same quantity the "Earned" swatch states, rendered the same
-                    // way: one number, one spelling.
-                    Text("·")
-                        .foregroundStyle(.tertiary)
-                    Text(Format.signedEuro(report.holdings.unrealisedGain, decimals: 2))
-                        .font(Theme.numeric(11, weight: .medium))
-                }
-                .foregroundStyle(Theme.accent)
-            }
-        }
-    }
+                yearJourney
 
-    /// One year and its caption. The reachable year wears the brand gradient at the
-    /// size the projection page uses for its own; the counterfactual is deliberately
-    /// smaller and grey, because it is the thing that did not happen.
-    private func yearColumn(value: String, caption: String, emphasised: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if emphasised {
-                Text(value)
-                    .font(Theme.display(34))
-                    .foregroundStyle(Theme.accentGradient(scheme))
-            } else {
-                Text(value)
-                    .font(Theme.display(22))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 10)
-            }
-            Text(caption)
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.tertiary)
-        }
-        .fixedSize()
-    }
-
-    private var rows: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            ForEach(contributions.ranked) { item in
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text(HoldingName.short(item.holding.name))
-                            .font(Theme.caption)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        Spacer()
-                        Text(label(for: item))
-                            .font(Theme.numeric(11, weight: .medium))
-                            .foregroundStyle(.secondary)
-                    }
-                    WeeksBar(
-                        weeks: item.weeks,
-                        peak: contributions.peakWeeks,
-                        isTwoSided: contributions.hasNegative,
-                        tint: HoldingPalette.shade(
-                            for: item.holding, in: report.holdings, dark: scheme == .dark
-                        )
+                HStack(spacing: 7) {
+                    HeroBadge(
+                        symbol: isPositive ? "chart.line.uptrend.xyaxis" : "chart.line.downtrend.xyaxis",
+                        text: Format.signedEuro(report.holdings.unrealisedGain, decimals: 2),
+                        tint: tint
                     )
+                    if let totalReturn = report.holdings.sinceBuyReturn {
+                        HeroBadge(
+                            symbol: "percent",
+                            text: Format.percent(totalReturn),
+                            tint: totalReturn >= 0 ? Theme.accent : .red
+                        )
+                    }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [tint.opacity(scheme == .dark ? 0.18 : 0.12), tint.opacity(0.025)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(tint.opacity(scheme == .dark ? 0.28 : 0.20), lineWidth: 0.75)
+                }
+        }
+        .frame(width: Theme.popoverWidth - (Theme.gutter * 2))
+        .accessibilityElement(children: .combine)
     }
 
-    private func label(for item: TimeContribution) -> String {
-        guard let weeks = item.weeks else { return Strings.withoutItNoArrival }
-        return "\(Format.weeks(weeks)) \(Strings.weeksAbbreviated)"
+    @ViewBuilder
+    private var yearJourney: some View {
+        if report.yearsDiffer || report.arrivalYearWithoutGains == nil {
+            HStack(spacing: 7) {
+                YearChip(
+                    year: report.arrivalYearWithoutGains.map(String.init) ?? Strings.withoutGainsNever,
+                    label: Strings.withoutGains,
+                    tint: .secondary,
+                    emphasised: false
+                )
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.tertiary)
+                YearChip(
+                    year: report.arrivalYear.map(String.init) ?? "—",
+                    label: Strings.yours,
+                    tint: tint,
+                    emphasised: true
+                )
+            }
+        } else {
+            HStack(spacing: 7) {
+                YearChip(
+                    year: report.arrivalYear.map(String.init) ?? "—",
+                    label: Strings.yours,
+                    tint: tint,
+                    emphasised: true
+                )
+                Text(Strings.sameYearWithoutGains)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+        }
     }
 }
 
-/// One holding's contribution, scaled against the largest on the page.
-///
-/// Grows from the left while every position is up, and from a centre axis as soon
-/// as one is not: a position that is down subtracts time, and a bar that could only
-/// grow rightward would have to draw a loss as a short gain. Paying for that axis
-/// when nothing is negative would waste half of every track.
-private struct WeeksBar: View {
-
-    let weeks: Double?
-    let peak: Double?
-    let isTwoSided: Bool
-    /// The fund's own shade, so this bar and its chip in the legend above are
-    /// recognisably the same position.
+/// A quiet echo of the app icon, giving the hero depth without introducing a new motif.
+private struct TargetEcho: View {
     let tint: Color
 
     var body: some View {
-        GeometryReader { geometry in
-            let origin = isTwoSided ? geometry.size.width / 2 : 0
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(.quaternary)
-                    .frame(height: 5)
-
-                if let width = width(in: geometry.size.width), let weeks {
-                    Capsule()
-                        .fill(weeks >= 0 ? AnyShapeStyle(tint) : AnyShapeStyle(Theme.lossGradient))
-                        .frame(width: width, height: 5)
-                        .offset(x: weeks >= 0 ? origin : origin - width)
-                }
-
-                if isTwoSided {
-                    // The axis, so a bar's direction is legible without reading the
-                    // number beside it.
-                    Rectangle()
-                        .fill(.tertiary)
-                        .frame(width: 1, height: 7)
-                        .offset(x: origin)
-                }
-            }
+        ZStack {
+            Circle().stroke(tint.opacity(0.08), lineWidth: 1)
+            Circle()
+                .trim(from: 0.05, to: 0.63)
+                .stroke(tint.opacity(0.24), style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .padding(15)
+            Circle()
+                .fill(tint.opacity(0.18))
+                .frame(width: 16, height: 16)
         }
-        .frame(height: 7)
-    }
-
-    private func width(in total: Double) -> Double? {
-        guard let weeks, let peak, peak > 0 else { return nil }
-        let available = isTwoSided ? total / 2 : total
-        return min(abs(weeks) / peak, 1) * available
     }
 }
 
-// MARK: - 2. Your money, the market's
+private struct YearChip: View {
+    let year: String
+    let label: String
+    let tint: Color
+    let emphasised: Bool
 
-/// The whole portfolio as one mark, and the page's legend.
-///
-/// This replaced a second list of five bars. Three sections in a row of "label, five
-/// rows, a bar each" made the page read as one idea repeated, and a stacked bar says
-/// what those rows said — relative size — in a single glance, while naming each fund
-/// once for every section below it to refer back to by colour.
-private struct PortfolioBarSection: View {
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Text(year)
+                .font(Theme.numeric(emphasised ? 13 : 12, weight: .bold))
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .foregroundStyle(tint)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background {
+            Capsule().fill(tint.opacity(emphasised ? 0.12 : 0.07))
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.78)
+    }
+}
+
+private struct HeroBadge: View {
+    let symbol: String
+    let text: String
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol)
+                .font(.system(size: 9, weight: .semibold))
+            Text(text)
+                .font(Theme.numeric(10, weight: .semibold))
+        }
+        .foregroundStyle(tint)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background { Capsule().fill(tint.opacity(0.11)) }
+    }
+}
+
+// MARK: - Portfolio map
+
+/// One unmistakable allocation mark, followed by the three numbers that explain it.
+private struct PortfolioOverviewCard: View {
 
     let holdings: HoldingsSnapshot
 
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            SectionLabel(text: Strings.theWholePortfolio)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                SectionLabel(text: Strings.theWholePortfolio)
+                Spacer()
+                Text(Strings.positionCount(holdings.items.count))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+            }
 
             GeometryReader { geometry in
-                HStack(spacing: 2) {
+                HStack(spacing: 3) {
                     ForEach(holdings.byValuation) { holding in
-                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        RoundedRectangle(cornerRadius: 3, style: .continuous)
                             .fill(shade(holding))
                             .frame(width: width(for: holding, in: geometry.size.width))
                     }
                 }
             }
-            .frame(height: 13)
+            .frame(height: 17)
 
-            legend
-
-            // The header total split in two, so both are given to the cent: rounded,
-            // they would sum to a euro that is not the one at the top of the page.
-            HStack(spacing: 12) {
-                Swatch(
-                    color: .secondary.opacity(0.45),
-                    label: Strings.paidIn(Format.euro(holdings.cost, decimals: 2))
+            HStack(spacing: 0) {
+                MoneyMetric(label: Strings.invested, value: Format.euro(holdings.cost))
+                metricDivider
+                MoneyMetric(
+                    label: Strings.marketGain,
+                    value: Format.signedEuro(holdings.unrealisedGain),
+                    tint: holdings.unrealisedGain >= 0 ? Theme.accent : .red
                 )
-                Swatch(
-                    color: Theme.accent,
-                    label: Strings.earned(Format.signedEuro(holdings.unrealisedGain, decimals: 2))
+                metricDivider
+                MoneyMetric(
+                    label: Strings.totalReturn,
+                    value: holdings.sinceBuyReturn.map { Format.percent($0) } ?? "—",
+                    tint: (holdings.sinceBuyReturn ?? 0) >= 0 ? Theme.accent : .red
                 )
             }
         }
+        .padding(12)
+        .dashboardCard()
+        .frame(width: Theme.popoverWidth - (Theme.gutter * 2))
     }
 
-    /// Names each fund once, with its shade and its share. Two columns, because five
-    /// fund names down a single column is the row list this section exists to retire.
-    private var legend: some View {
-        let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
-        return LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
-            ForEach(holdings.byValuation) { holding in
-                HStack(spacing: 5) {
-                    RoundedRectangle(cornerRadius: 2, style: .continuous)
-                        .fill(shade(holding))
-                        .frame(width: 7, height: 7)
-                    Text(HoldingName.short(holding.name))
-                        .font(.system(size: 10))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 2)
-                    if let weight = holdings.weight(of: holding) {
-                        Text(Format.wholePercent(weight))
-                            .font(Theme.numeric(10, weight: .medium))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .help("\(holding.name) · \(Format.euro(holding.valuation, decimals: 2))")
-            }
-        }
+    private var metricDivider: some View {
+        Rectangle()
+            .fill(.quaternary)
+            .frame(width: 0.5, height: 28)
+            .padding(.horizontal, 8)
     }
 
     private func shade(_ holding: Holding) -> Color {
         HoldingPalette.shade(for: holding, in: holdings, dark: scheme == .dark)
     }
 
-    /// Share of the bar, with a floor so a tiny position stays visible rather than
-    /// collapsing into the gap beside it.
     private func width(for holding: Holding, in total: Double) -> Double {
         guard let weight = holdings.weight(of: holding) else { return 0 }
-        let gaps = Double(max(holdings.items.count - 1, 0)) * 2
+        let gaps = Double(max(holdings.items.count - 1, 0)) * 3
         return max((total - gaps) * weight, 3)
     }
 }
 
-private struct Swatch: View {
-    let color: Color
+private struct MoneyMetric: View {
     let label: String
+    let value: String
+    var tint: Color = .primary
 
     var body: some View {
-        HStack(spacing: 5) {
-            RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                .fill(color)
-                .frame(width: 8, height: 8)
-            Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label.uppercased())
+                .font(.system(size: 8, weight: .semibold))
+                .tracking(0.25)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(value)
+                .font(Theme.numeric(11, weight: .semibold))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-// MARK: - 3. Since you bought
+// MARK: - Position impact
 
-/// Every position's return since purchase on one scale, against the portfolio's.
-private struct SinceBuySection: View {
+/// Share, return, and time contribution live together so each position tells one story.
+private struct PositionImpactSection: View {
 
     let report: HoldingsReport
 
     @Environment(\.colorScheme) private var scheme
 
-    private var rows: [(holding: Holding, fraction: Double)] {
-        report.holdings.byValuation.compactMap { holding in
-            holding.sinceBuyReturn.map { (holding, $0) }
-        }
-    }
-
-    /// The axis covers every return plus zero, so a losing position has somewhere
-    /// to sit and the portfolio line is never off the end.
-    private var bounds: (low: Double, high: Double) {
-        let values = rows.map(\.fraction) + [0, report.holdings.sinceBuyReturn ?? 0]
-        let low = min(values.min() ?? 0, 0)
-        let high = max(values.max() ?? 0, 0)
-        // A flat portfolio would give a zero-width axis, which puts every dot on
-        // top of the line and reads as a coincidence rather than as no spread.
-        return high - low < 0.02 ? (low - 0.01, high + 0.01) : (low, high)
+    private var items: [TimeContribution] {
+        report.contributions.isEmpty
+            ? report.holdings.byValuation.map { TimeContribution(holding: $0, weeks: nil) }
+            : report.contributions.ranked
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(text: Strings.sinceYouBought)
+            HStack(alignment: .firstTextBaseline) {
+                SectionLabel(text: Strings.positionImpact)
+                Spacer()
+                Text(Strings.positionImpactLegend)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
+            }
 
-            if rows.isEmpty {
-                Text(Strings.notEnoughHistory)
-                    .font(Theme.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(rows, id: \.holding.id) { row in
-                        StripRow(
-                            holding: row.holding,
-                            fraction: row.fraction,
-                            bounds: bounds,
-                            isOutlier: row.holding == report.outlier,
-                            shade: HoldingPalette.shade(
-                                for: row.holding, in: report.holdings, dark: scheme == .dark
-                            )
+            VStack(spacing: 0) {
+                ForEach(items) { item in
+                    PositionImpactRow(
+                        item: item,
+                        holdings: report.holdings,
+                        peakWeeks: report.contributions.peakWeeks,
+                        isOutlier: item.holding == report.outlier,
+                        tint: HoldingPalette.shade(
+                            for: item.holding,
+                            in: report.holdings,
+                            dark: scheme == .dark
                         )
+                    )
+
+                    if item.id != items.last?.id {
+                        Rectangle()
+                            .fill(.quaternary)
+                            .frame(height: 0.5)
+                            .padding(.leading, 30)
                     }
                 }
-
-                if let portfolio = report.holdings.sinceBuyReturn {
-                    Text(Strings.portfolioAt(Format.percent(portfolio)))
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
-                }
             }
+            .dashboardCard()
         }
+        .frame(width: Theme.popoverWidth - (Theme.gutter * 2))
     }
 }
 
-/// One holding's return, as a dot on its own track.
-///
-/// A row each rather than five dots on a shared axis: four of a broad portfolio's
-/// returns cluster within a few points, and on one line their labels collide into
-/// something unreadable.
-private struct StripRow: View {
+private struct PositionImpactRow: View {
 
-    let holding: Holding
-    let fraction: Double
-    let bounds: (low: Double, high: Double)
+    let item: TimeContribution
+    let holdings: HoldingsSnapshot
+    let peakWeeks: Double?
     let isOutlier: Bool
-    /// The fund's shade from the legend. Overridden by amber when this is the
-    /// outlier: "look at this" outranks identity, and the row says which fund it is
-    /// in words anyway.
-    let shade: Color
+    let tint: Color
 
-    private var tint: Color { isOutlier ? Theme.warning : shade }
+    private var holding: Holding { item.holding }
+    private var returnTint: Color {
+        guard let value = holding.sinceBuyReturn else { return .secondary }
+        return value >= 0 ? Theme.accent : .red
+    }
+    private var timeTint: Color {
+        guard let weeks = item.weeks else { return .secondary }
+        return weeks >= 0 ? Theme.accent : .red
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 7) {
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(tint)
+                    .frame(width: 10, height: 10)
+
                 Text(HoldingName.short(holding.name))
-                    .font(.system(size: 10))
-                    .foregroundStyle(isOutlier ? tint : .primary)
+                    .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
-                Spacer()
-                Text(Format.percent(fraction))
+
+                if isOutlier {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(Theme.warning)
+                }
+
+                Spacer(minLength: 5)
+
+                Text(Format.euro(holding.valuation))
                     .font(Theme.numeric(10, weight: .medium))
-                    .foregroundStyle(isOutlier ? tint : .secondary)
+                    .foregroundStyle(.secondary)
             }
 
-            GeometryReader { geometry in
-                let span = bounds.high - bounds.low
-                let x = span > 0 ? (fraction - bounds.low) / span * geometry.size.width : 0
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(.quaternary)
-                        .frame(height: 1)
-                    Circle()
-                        .fill(tint)
-                        .frame(width: 7, height: 7)
-                        .offset(x: min(max(x - 3.5, 0), geometry.size.width - 7))
+            HStack(spacing: 7) {
+                if let weight = holdings.weight(of: holding) {
+                    Text(Format.wholePercent(weight))
+                        .font(Theme.numeric(9, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Text(Strings.ofPortfolio)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                }
+
+                Text("·")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.quaternary)
+
+                Text(holding.sinceBuyReturn.map { Format.percent($0) } ?? "—")
+                    .font(Theme.numeric(9, weight: .semibold))
+                    .foregroundStyle(returnTint)
+
+                Spacer()
+
+                Image(systemName: "clock")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(timeTint)
+                Text(timeLabel)
+                    .font(Theme.numeric(9, weight: .semibold))
+                    .foregroundStyle(timeTint)
+            }
+
+            ImpactBar(weeks: item.weeks, peak: peakWeeks, tint: tint)
+        }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 9)
+        .background(isOutlier ? Theme.warning.opacity(0.045) : .clear)
+        .help("\(holding.name) · \(holding.isin)")
+        .accessibilityElement(children: .combine)
+    }
+
+    private var timeLabel: String {
+        guard let weeks = item.weeks else { return Strings.withoutItNoArrival }
+        return "\(Format.weeks(weeks)) \(Strings.weeksAbbreviated)"
+    }
+}
+
+private struct ImpactBar: View {
+    let weeks: Double?
+    let peak: Double?
+    let tint: Color
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.quaternary)
+                if let weeks, let peak, peak > 0 {
+                    Capsule()
+                        .fill(weeks >= 0 ? AnyShapeStyle(tint) : AnyShapeStyle(Theme.lossGradient))
+                        .frame(width: max(3, min(abs(weeks) / peak, 1) * geometry.size.width))
                 }
             }
-            .frame(height: 7)
+        }
+        .frame(height: 3)
+    }
+}
+
+/// Turns the existing outlier calculation into a sentence a person can act on.
+private struct PortfolioInsight: View {
+    let report: HoldingsReport
+
+    var body: some View {
+        if let outlier = report.outlier,
+           let ownReturn = outlier.sinceBuyReturn,
+           let portfolioReturn = report.holdings.sinceBuyReturn {
+            let delta = ownReturn - portfolioReturn
+            HStack(alignment: .top, spacing: 9) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Theme.warning)
+                    .frame(width: 18, height: 18)
+                    .background { Circle().fill(Theme.warning.opacity(0.12)) }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Strings.worthNoticing)
+                        .font(.system(size: 9, weight: .semibold))
+                        .tracking(0.25)
+                        .foregroundStyle(Theme.warning)
+                    Text(Strings.outlierInsight(
+                        HoldingName.short(outlier.name),
+                        gap: pointGap(abs(delta)),
+                        isAhead: delta > 0
+                    ))
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(Theme.warning.opacity(0.07))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .stroke(Theme.warning.opacity(0.16), lineWidth: 0.5)
+                    }
+            }
+            .frame(width: Theme.popoverWidth - (Theme.gutter * 2), alignment: .leading)
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func pointGap(_ value: Double) -> String {
+        let signed = Format.percentagePoints(value)
+        return signed.hasPrefix("+") ? String(signed.dropFirst()) : signed
+    }
+}
+
+private extension View {
+    func dashboardCard() -> some View {
+        background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.background.opacity(0.42))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(.quaternary, lineWidth: 0.75)
+                }
+                .shadow(color: .black.opacity(0.035), radius: 8, y: 3)
         }
     }
 }
