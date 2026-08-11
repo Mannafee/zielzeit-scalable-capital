@@ -1,7 +1,7 @@
 import XCTest
 @testable import ZielzeitCore
 
-/// The German half of the app.
+/// The localized half of the app.
 ///
 /// Every test here sets `AppLanguage.current` and puts it back, because it is
 /// process-wide state and the other 229 tests assert English. `defer` rather than
@@ -9,8 +9,12 @@ import XCTest
 final class LocalizationTests: XCTestCase {
 
     private func inGerman(_ body: () throws -> Void) rethrows {
+        try inLanguage(.german, body)
+    }
+
+    private func inLanguage(_ language: AppLanguage, _ body: () throws -> Void) rethrows {
         let previous = AppLanguage.current
-        AppLanguage.current = .german
+        AppLanguage.current = language
         defer { AppLanguage.current = previous }
         try body()
     }
@@ -21,21 +25,24 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(AppLanguage.current, .english)
     }
 
-    func testRegionalGermanStillCountsAsGerman() {
+    func testRegionalIdentifiersSelectEverySupportedLanguage() {
         XCTAssertEqual(AppLanguage.preferred(from: ["de-AT"]), .german)
         XCTAssertEqual(AppLanguage.preferred(from: ["de-DE", "en-US"]), .german)
         XCTAssertEqual(AppLanguage.preferred(from: ["de"]), .german)
+        XCTAssertEqual(AppLanguage.preferred(from: ["fr-CA"]), .french)
+        XCTAssertEqual(AppLanguage.preferred(from: ["es-MX"]), .spanish)
+        XCTAssertEqual(AppLanguage.preferred(from: ["it-CH"]), .italian)
     }
 
     func testFirstSupportedLanguageWins() {
         XCTAssertEqual(AppLanguage.preferred(from: ["en-GB", "de-DE"]), .english)
         // An unsupported language ahead of a supported one is skipped rather than
-        // ending the search — a Mac set to French then German should read German.
-        XCTAssertEqual(AppLanguage.preferred(from: ["fr-FR", "de-DE"]), .german)
+        // ending the search.
+        XCTAssertEqual(AppLanguage.preferred(from: ["nl-NL", "fr-FR", "de-DE"]), .french)
     }
 
     func testUnsupportedLanguagesFallBackToEnglish() {
-        XCTAssertEqual(AppLanguage.preferred(from: ["fr-FR", "it-IT"]), .english)
+        XCTAssertEqual(AppLanguage.preferred(from: ["nl-NL", "pl-PL"]), .english)
         XCTAssertEqual(AppLanguage.preferred(from: []), .english)
     }
 
@@ -57,12 +64,11 @@ final class LocalizationTests: XCTestCase {
 
     func testAChosenLanguageIsRememberedAndUsed() {
         let (store, _) = store()
-        store.setPreference(.german)
-        XCTAssertEqual(store.preference, .german)
-        XCTAssertEqual(store.resolved, .german)
-
-        store.setPreference(.english)
-        XCTAssertEqual(store.resolved, .english)
+        for preference in LanguagePreference.allCases where preference != .system {
+            store.setPreference(preference)
+            XCTAssertEqual(store.preference, preference)
+            XCTAssertEqual(store.resolved, preference.language)
+        }
     }
 
     /// Following the device is the *absence* of a setting, so going back to it
@@ -94,8 +100,17 @@ final class LocalizationTests: XCTestCase {
     func testLanguagesNameThemselves() {
         XCTAssertEqual(AppLanguage.german.endonym, "Deutsch")
         XCTAssertEqual(AppLanguage.english.endonym, "English")
+        XCTAssertEqual(AppLanguage.french.endonym, "Français")
+        XCTAssertEqual(AppLanguage.spanish.endonym, "Español")
+        XCTAssertEqual(AppLanguage.italian.endonym, "Italiano")
         // In German too: the point of an endonym is that it does not move.
         inGerman { XCTAssertEqual(AppLanguage.english.endonym, "English") }
+    }
+
+    func testEveryLanguagePreferenceRoundTripsToItsLanguage() {
+        for language in AppLanguage.allCases {
+            XCTAssertEqual(LanguagePreference(language: language).language, language)
+        }
     }
 
     // MARK: - Numbers
@@ -132,6 +147,38 @@ final class LocalizationTests: XCTestCase {
             XCTAssertEqual(Format.duration(months: 8), "8 Monaten")
             XCTAssertEqual(Format.duration(months: 1), "einem Monat")
             XCTAssertEqual(Format.duration(months: 0.4), "unter einem Monat")
+        }
+    }
+
+    func testRomanceLanguagesUseLocalizedNumbersDurationsAndCurrency() {
+        let expected: [(AppLanguage, String, String, String)] = [
+            (.french, "1\u{202F}234,56\u{202F}€", "6,0\u{202F}%", "15,7 ans"),
+            (.spanish, "1\u{202F}234,56\u{202F}€", "6,0%", "15,7 años"),
+            (.italian, "1\u{202F}234,56\u{202F}€", "6,0%", "15,7 anni"),
+        ]
+
+        for (language, amount, percent, duration) in expected {
+            inLanguage(language) {
+                XCTAssertEqual(Format.euro(1_234.56, decimals: 2), amount)
+                XCTAssertEqual(Format.percent(0.06), percent)
+                XCTAssertEqual(Format.duration(months: 188.4), duration)
+            }
+        }
+    }
+
+    func testNewLanguagesUseTranslatedCoreCopy() {
+        let expected: [(AppLanguage, String, String, String)] = [
+            (.french, "Votre rythme", "Définir un objectif", "Positions"),
+            (.spanish, "Tu ritmo", "Fija un objetivo", "Posiciones"),
+            (.italian, "Il tuo ritmo", "Imposta un obiettivo", "Posizioni"),
+        ]
+
+        for (language, pace, goal, holdings) in expected {
+            inLanguage(language) {
+                XCTAssertEqual(Strings.yourPace, pace)
+                XCTAssertEqual(Strings.setAGoal, goal)
+                XCTAssertEqual(Strings.holdings, holdings)
+            }
         }
     }
 
@@ -179,13 +226,14 @@ final class LocalizationTests: XCTestCase {
 
     // MARK: - Disclaimer
 
-    /// The same one-line-under-70-characters rule the English disclaimer is held
-    /// to. German is the language that breaks it, so it is the one worth pinning.
-    func testEveryGermanCaveatFitsOnOneLine() {
-        inGerman {
-            for line in Disclaimer.assumptions(for: germanReport()) + [Disclaimer.notAdvice] {
-                XCTAssertFalse(line.contains("\n"), line)
-                XCTAssertLessThan(line.count, 70, "too long (\(line.count)): \(line)")
+    /// Caveats render as single compact rows in the popover in every language.
+    func testEveryLocalizedCaveatFitsOnOneLine() {
+        for language in AppLanguage.allCases {
+            inLanguage(language) {
+                for line in Disclaimer.assumptions(for: germanReport()) + [Disclaimer.notAdvice] {
+                    XCTAssertFalse(line.contains("\n"), "\(language): \(line)")
+                    XCTAssertLessThan(line.count, 70, "\(language), too long (\(line.count)): \(line)")
+                }
             }
         }
     }

@@ -22,7 +22,7 @@ public enum Format {
     /// The bare number, grouped with a narrow space and with the decimal
     /// separator the current language asks for.
     ///
-    /// The grouping separator is the app's own choice in both languages rather
+    /// The grouping separator is the app's own choice in every language rather
     /// than the locale's, which is what keeps `1 234 567,89` readable at 10pt
     /// where `1.234.567,89` turns into a picket fence.
     private static func decimalString(_ value: Double, decimals: Int) -> String {
@@ -40,7 +40,7 @@ public enum Format {
     }
 
     /// An amount with the currency symbol where the language puts it: `€1 234` in
-    /// English, `1 234 €` in German.
+    /// English, `1 234 €` in the continental European languages.
     public static func euro(_ amount: Double, decimals: Int = 0) -> String {
         let number = decimalString(amount, decimals: decimals)
         return AppLanguage.current.currencySymbolLeads ? "€\(number)" : "\(number)\(thinSpace)€"
@@ -57,8 +57,10 @@ public enum Format {
         switch AppLanguage.current {
         case .english:
             return String(format: "%.\(decimals)f%%", rate * 100)
-        case .german:
+        case .german, .french:
             return decimalString(rate * 100, decimals: decimals) + thinSpace + "%"
+        case .spanish, .italian:
+            return decimalString(rate * 100, decimals: decimals) + "%"
         }
     }
 
@@ -66,7 +68,7 @@ public enum Format {
     /// label beside the progress bar.
     public static func wholePercent(_ fraction: Double) -> String {
         let value = Int((fraction * 100).rounded())
-        return AppLanguage.current == .german ? "\(value)\(thinSpace)%" : "\(value)%"
+        return AppLanguage.current.percentSignIsSpaced ? "\(value)\(thinSpace)%" : "\(value)%"
     }
 
     /// A number of weeks, for the holdings page's time contributions.
@@ -84,7 +86,8 @@ public enum Format {
     public static func weeks(_ weeks: Double) -> String {
         switch AppLanguage.current {
         case .english: return String(format: "%.1f", abs(weeks))
-        case .german: return decimalString(abs(weeks), decimals: 1)
+        case .german, .french, .spanish, .italian:
+            return decimalString(abs(weeks), decimals: 1)
         }
     }
 
@@ -92,13 +95,14 @@ public enum Format {
     ///
     /// Signed, unlike `percent`: a gap's direction is the whole content of the
     /// figure, and the unit is written by the caller because "pp" and "PP" differ
-    /// between the two languages.
+    /// between languages.
     public static func percentagePoints(_ fraction: Double, decimals: Int = 1) -> String {
         let value = fraction * 100
         let sign = value > 0 ? "+" : (value < 0 ? "−" : "")
         switch AppLanguage.current {
         case .english: return sign + String(format: "%.\(decimals)f", abs(value))
-        case .german: return sign + decimalString(abs(value), decimals: decimals)
+        case .german, .french, .spanish, .italian:
+            return sign + decimalString(abs(value), decimals: decimals)
         }
     }
 
@@ -107,6 +111,9 @@ public enum Format {
         switch AppLanguage.current {
         case .english: return String(format: "%.1f yrs", months / 12)
         case .german: return decimalString(months / 12, decimals: 1) + " J."
+        case .french: return decimalString(months / 12, decimals: 1) + " ans"
+        case .spanish: return decimalString(months / 12, decimals: 1) + " años"
+        case .italian: return decimalString(months / 12, decimals: 1) + " anni"
         }
     }
 
@@ -136,6 +143,27 @@ public enum Format {
                 return whole == 1 ? "einem Monat" : "\(whole) Monaten"
             }
             return decimalString(months / 12, decimals: 1) + " Jahren"
+        case .french:
+            if months < 1 { return "moins d’un mois" }
+            if months < 24 {
+                let whole = Int(months.rounded())
+                return whole == 1 ? "1 mois" : "\(whole) mois"
+            }
+            return decimalString(months / 12, decimals: 1) + " ans"
+        case .spanish:
+            if months < 1 { return "menos de un mes" }
+            if months < 24 {
+                let whole = Int(months.rounded())
+                return whole == 1 ? "1 mes" : "\(whole) meses"
+            }
+            return decimalString(months / 12, decimals: 1) + " años"
+        case .italian:
+            if months < 1 { return "meno di un mese" }
+            if months < 24 {
+                let whole = Int(months.rounded())
+                return whole == 1 ? "1 mese" : "\(whole) mesi"
+            }
+            return decimalString(months / 12, decimals: 1) + " anni"
         }
     }
 

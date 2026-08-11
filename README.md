@@ -58,7 +58,11 @@ move with it:
   <img src="docs/demo.gif" alt="The Zielzeit popover with the Save more slider being dragged: the projected year counts down from 2033 to 2030, the sentence goes from 7.1 years to 3.5, and the three projection curves steepen to meet the goal line sooner" width="344">
 </p>
 
-Zielzeit speaks **English and German**, picked from your Mac's language and switchable in the app.
+Zielzeit speaks **English · Deutsch · Français · Español · Italiano**. It follows the first
+supported language in your Mac's preferences by default, or you can choose one at any time from
+the **Language** menu. The interface, numbers, dates, percentages, and euro placement all follow
+the selected language.
+
 The same popover, in German:
 
 <p align="center">
@@ -163,7 +167,7 @@ Three values in its own preferences domain, `com.zielzeit.Zielzeit`:
 | Key | What it is |
 |---|---|
 | `goal` | Your goal amount, a number |
-| `language` | `en`, `de`, or absent for "follow the Mac" |
+| `language` | `en`, `de`, `fr`, `es`, `it`, or absent for "follow the Mac" |
 | `hasRequestedAccess` | Whether you have emailed for beta access, a true/false |
 
 No balance, no holdings, no transactions, no name. Figures are fetched, shown, and forgotten when
@@ -353,8 +357,9 @@ around it one tap.
 3. **Sign in.** Run `sc login --local-read-only` yourself in Terminal. Zielzeit shows the command and
    can open Terminal with it typed but not executed.
 
-Then set your goal. `100000`, `100.000`, `€100 000` and `100k` all parse. In German, amounts are
-written the German way, with the symbol after the number: `42 350,18 €`.
+Then set your goal. `100000`, `100.000`, `€100 000` and `100k` all parse. German, French,
+Spanish, and Italian display continental number formatting with the euro sign after the amount:
+`42 350,18 €`.
 
 ### Three things Zielzeit will not do
 
