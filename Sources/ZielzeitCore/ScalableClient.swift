@@ -402,11 +402,12 @@ struct OverviewResult: Decodable {
     /// this is the same call the portfolio valuation comes from, so a broker that
     /// adds a window must not be able to take the whole read down.
     ///
-    /// Note what is *not* read. Each entry also carries a `performance` field,
-    /// which by its name is the percentage — and which the live CLI returns as `0`
-    /// for every window, including ones with a four-figure absolute return. Only
-    /// `simpleAbsoluteReturn` is trustworthy, so percentages are derived in
-    /// `MarketMove`.
+    /// Note what is *not* available. No entry reports a percentage: as of sc 0.6.0
+    /// each one carries `timeframe` and `simpleAbsoluteReturn` and nothing more.
+    /// Versions through 0.5.0 did include a `performance` field, which by its name
+    /// was the percentage — and which the live CLI returned as `0` for every window,
+    /// including ones with a four-figure absolute return. It was never read here,
+    /// and 0.6.0 removed it. Percentages are derived in `MarketMove` instead.
     var trailingReturns: [ReturnWindow: Double] {
         (performance ?? []).reduce(into: [:]) { windows, entry in
             guard
