@@ -251,6 +251,10 @@ struct PopoverView: View {
 
             DisclaimerView(report: report, initiallyExpanded: model.showsCaveats)
         }
+        // Localized rows can have an ideal width wider than the popover. Pin the
+        // page itself so SwiftUI wraps or compresses those rows instead of centring
+        // an oversized tree and clipping both edges.
+        .frame(width: Theme.popoverWidth - (Theme.gutter * 2), alignment: .leading)
     }
 
     /// The hero's live projection while the "save more" slider is off zero.

@@ -25,67 +25,100 @@
 </p>
 
 <p align="center">
-  <a href="https://mannafee.github.io/zielzeit-scalable-capital/"><strong>zielzeit website ↗</strong></a>
+  <a href="https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest/download/Zielzeit.dmg"><strong>Download</strong></a>
+  · <a href="https://mannafee.github.io/zielzeit-scalable-capital/">Website</a>
+  · <a href="#install">Homebrew</a>
+  · <a href="#build-it-yourself">Build from source</a>
 </p>
 
 ---
 
 <p align="center">
-  <b>It reads your broker account, so here is the short version first.</b><br>
-  Six read-only commands · no credentials, ever · no networking code at all<br>
-  <sub><code>make audit</code> checks each of those against the source, in a fresh clone, with no build.
-  <a href="#safety">Safety</a> · <a href="SECURITY.md">SECURITY.md</a></sub>
+  <a href="#overview">Overview</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#safety">Safety</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#connecting-to-scalable-capital">Setup</a> ·
+  <a href="#contributing">Contributing</a>
 </p>
 
-Zielzeit (German for "finish time") is a free, open-source macOS menu bar app for
-[Scalable Capital](https://scalable.capital) investors. It answers one question: when will my
-portfolio reach my goal?
+> [!IMPORTANT]
+> Zielzeit accesses a brokerage account, so the trust boundary is explicit: **six read-only
+> commands, no credentials, and no networking code of its own.** Run `make audit` to check those
+> claims against the source. See [Safety](#safety) and [SECURITY.md](SECURITY.md).
+
+## Overview
+
+Zielzeit—German for *finish time*—is a free, open-source macOS menu bar app for
+[Scalable Capital](https://scalable.capital) investors. It answers one question:
+**when will my portfolio reach my goal?**
 
 It reads your broker account through the official
 [Scalable Capital CLI](https://github.com/ScalableCapital/scalable-cli). Read-only, with no scraping,
-no unofficial APIs and no credentials. From your balance, savings plan and trailing return it works
-out a projected arrival year and keeps it in your menu bar.
+unofficial APIs, or credentials. From your balance, savings plan, deposits, and trailing return, it
+projects an arrival year and keeps the answer in your menu bar.
 
 <p align="center">
   <img src="docs/menubar.png" alt="Zielzeit in the macOS menu bar: a 17% progress ring, a green up caret and the projected year 2033" width="298"><br>
   <em>17% of the way there, up on the week, projected to arrive in 2033.</em>
 </p>
 
-Clicking it opens the popover. Drag **Save more** and the year, the sentence and all three curves
-move with it:
+### Inside the app
 
 <p align="center">
-  <img src="docs/demo.gif" alt="The Zielzeit popover with the Save more slider being dragged: the projected year counts down from 2033 to 2030, the sentence goes from 7.1 years to 3.5, and the three projection curves steepen to meet the goal line sooner" width="344">
+  <img src="docs/popover.png" alt="The Zielzeit projection popover showing the projected year, three scenario curves, two what-if sliders, and portfolio facts" width="344"><br>
+  <strong>Your projection at a glance.</strong><br>
+  <sub>The arrival year, three scenarios, what-if controls, and portfolio facts in one view.</sub>
 </p>
-
-Zielzeit speaks **English and German**, picked from your Mac's language and switchable in the app.
-The same popover, in German:
 
 <p align="center">
-  <img src="docs/popover-de.png" alt="The same Zielzeit popover in German: Prognose 2033, In 7,1 Jahren hast du etwa 250 000 €, with the scenarios Vorsichtig, Moderat and Dein Tempo" width="344">
+  <img src="docs/holdings.png" alt="The Zielzeit holdings page: a card reading 21.6 weeks closer to your goal, 2034 without gains against 2033 yours, a portfolio bar with five segments over invested €36 420 and a market gain of €5 930, then each position with its share, return and weeks contributed" width="344"><br>
+  <strong>See what your gains bought.</strong><br>
+  <sub>Every position is translated into weeks gained or lost on the way to your goal.</sub>
 </p>
 
-Swipe sideways for your **positions**, measured in the same unit as everything else — time:
+### Five languages, fully localized
 
+**English · Deutsch · Français · Español · Italiano**
+
+Zielzeit follows the first supported language in your Mac's preferences, or you can switch at any
+time from the **Language** menu. Labels, numbers, dates, percentages, and euro placement all follow
+the selected language.
+
+<details>
+<summary><b>Preview the localized interfaces</b></summary>
 <p align="center">
-  <img src="docs/holdings.png" alt="The Zielzeit holdings page: a card reading 21.6 weeks closer to your goal, 2034 without gains against 2033 yours, a portfolio bar with five segments over invested €36 420 and a market gain of €5 930, then each position with its share, return and weeks contributed" width="344">
+  <img src="docs/popover-de.png" alt="Zielzeit in German" width="190">
+  <img src="docs/popover-fr.png" alt="Zielzeit in French" width="190">
+  <img src="docs/popover-es.png" alt="Zielzeit in Spanish" width="190">
+  <img src="docs/popover-it.png" alt="Zielzeit in Italian" width="190">
 </p>
-
-The headline is the question this app exists to ask, asked of your gains: **how much sooner do you
-arrive because of them?** Take each position's unrealised gain out of the total, re-run the
-projection, and the difference is what that holding bought you — in weeks, and in the arrival year
-itself when it moves one. Underneath, the whole portfolio as one bar, and every position with its
-share, its return since purchase and its contribution in time.
+</details>
 
 <sub>Figures in every screenshot are synthetic demo data, not a real account.</sub>
+
+## Features
+
+- **A projected year in your menu bar.** Progress, market direction, and arrival year stay visible
+  without another window or tab.
+- **Three scenarios on one chart.** Cautious (3%), moderate (6%), and your measured pace use your
+  real deposits and [simple Dietz return](https://en.wikipedia.org/wiki/Simple_Dietz_method).
+- **Two live what-if sliders.** Add monthly savings to move every projection, or pick a target year
+  to calculate the contribution it needs.
+- **Inflation in plain sight.** The goal is restated in today's money at the projected horizon.
+- **Named market windows.** Cycle through today, this week, this month, three months, six months,
+  and the past year.
+- **Caveats tied to the figures.** Assumptions quote the exact rate, contribution, and goal on screen.
+- **Holdings measured in time.** See what you paid, what the market added, and how many weeks each
+  position moved your goal.
 
 ## Safety
 
 Zielzeit is read-only against your broker. It can run exactly six commands (`sc broker overview`,
 `sc broker savings-plans`, `sc broker transactions`, `sc broker holdings`, `sc whoami` and
-`sc installation-code`), enumerated in one Swift type with no other code path. There is no route to a trade, to any other
-write command, or to `login`. Nothing leaves your Mac: no analytics, no network call of its own, no
-account of any kind.
+`sc installation-code`), enumerated in one Swift type with no other code path. There is no route to
+a trade, another write command, or `login`. Nothing leaves your Mac: no analytics, no network call
+of its own, and no account of any kind.
 
 Every answer below names the file that backs it, so you can check rather than take it on faith — or
 check all of them at once. This needs no Xcode, no account and no build, so you can run it before
@@ -113,7 +146,8 @@ runs it on every push, so none of this can quietly drift away from the code. Wha
 check, [`SECURITY.md`](SECURITY.md) states plainly — including the two things that are true and not
 reassuring.
 
-### Can Zielzeit trade, sell, or move my money? **No.**
+<details>
+<summary><b>Can Zielzeit trade, sell, or move my money? No.</b></summary>
 
 The six commands above are listed in `ScalableClient.Command`
 ([`Sources/ZielzeitCore/ScalableClient.swift`](Sources/ZielzeitCore/ScalableClient.swift)) and every
@@ -133,7 +167,10 @@ blocked in the CLI until you log in again without the flag.
 grep -A20 'enum Command' Sources/ZielzeitCore/ScalableClient.swift
 ```
 
-### Does Zielzeit ever see my Scalable Capital password or 2FA? **No.**
+</details>
+
+<details>
+<summary><b>Does Zielzeit ever see my Scalable Capital password or 2FA? No.</b></summary>
 
 It never runs `sc login`, and that is deliberate. Signing in is an OAuth device-code flow you
 complete yourself in Terminal and in your browser, which is what
@@ -141,6 +178,8 @@ complete yourself in Terminal and in your browser, which is what
 *"For security and reliability, complete login yourself rather than via an AI agent."* Zielzeit shows
 you the command and can open Terminal with it typed but *not* executed. No credential ever passes
 through this app, and it never reads the session the CLI stores.
+
+</details>
 
 <details>
 <summary><b>Does my portfolio data leave my Mac? No.</b></summary>
@@ -163,7 +202,7 @@ Three values in its own preferences domain, `com.zielzeit.Zielzeit`:
 | Key | What it is |
 |---|---|
 | `goal` | Your goal amount, a number |
-| `language` | `en`, `de`, or absent for "follow the Mac" |
+| `language` | `en`, `de`, `fr`, `es`, `it`, or absent for "follow the Mac" |
 | `hasRequestedAccess` | Whether you have emailed for beta access, a true/false |
 
 No balance, no holdings, no transactions, no name. Figures are fetched, shown, and forgotten when
@@ -221,56 +260,36 @@ appears in the repository. That check protects contributors' accounts, and it is
 read every fixture here without seeing anyone's holdings.
 </details>
 
-## What it does
-
-- **A projected year in your menu bar.** A progress ring with your percentage inside it, the year
-  beside it, and a caret showing which way the market moved. No window to open, no tab to keep.
-- **Three scenarios on one chart.** Cautious (3%), moderate (6%), and your pace: the return your
-  portfolio actually achieved over the trailing year, measured with the
-  [simple Dietz method](https://en.wikipedia.org/wiki/Simple_Dietz_method) against your real deposits.
-  The headline year uses your pace, so it moves with how you are actually doing.
-- **Two what-if sliders.** "Save more" previews what an extra €200/mo does to every projection, live.
-  "Reach by" inverts the question and tells you the monthly contribution that hits a year you pick.
-- **Inflation, stated plainly.** The goal restated in today's money at the projected horizon, on
-  screen rather than behind a toggle.
-- **Market movement.** Tap the chip to cycle the window: today, this week, this month, 3 months,
-  6 months, past year. The window is always named, because the sign differs between them.
-- **Caveats that match the numbers.** The disclaimer quotes the rate, contribution and goal actually
-  on screen.
-- **Your positions, measured in time.** Swipe from the projection to a second page that converts each
-  position's gain into how much earlier it brings the goal — the same conversion the whole app is
-  built on, applied one holding at a time. Alongside it: the whole portfolio as one bar with what you
-  paid against what the market added, and each position's share, return since purchase and
-  contribution in weeks. It flags a holding whose return is well off the portfolio's own, and says by
-  how much.
-
 ## Requirements
 
 - macOS 15 (Sequoia) or later, on Apple silicon or Intel
 - A Scalable Capital brokerage account
 - The official Scalable CLI (`sc`), installed with [Homebrew](https://brew.sh), allowlisted by
   Scalable Capital and logged in. The app walks you through all three on first launch.
-- Xcode 16 or later, or an equivalent Swift 6 toolchain, if you build from source
+- Xcode 16 or an equivalent Swift 6 toolchain *(only when building from source)*
 
-## Download and install
+## Install
 
-**[⬇︎ Download Zielzeit.dmg](https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest/download/Zielzeit.dmg)**
-(or browse [all releases](https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest)). It is a
-universal build, so it runs on Apple silicon and Intel, and you do not need Xcode.
-
-1. Open the downloaded `Zielzeit.dmg` and drag Zielzeit onto the Applications folder.
-2. Open Zielzeit from Applications. The first launch will be blocked. See below.
-3. Look for the progress ring in your menu bar.
-
-Or from Homebrew, which is where you will be installing the Scalable CLI anyway:
+### Homebrew
 
 ```sh
 brew install --cask mannafee/tap/zielzeit
 ```
 
-That is one command instead of a download and a drag, and it is **not** a way around the
-first-launch warning below — the app is not notarized either way. ([Why the tap exists, and what it
-does not claim.](https://github.com/Mannafee/homebrew-tap))
+This is the quickest option if you already use Homebrew for the Scalable CLI.
+
+### Disk image
+
+**[Download Zielzeit.dmg](https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest/download/Zielzeit.dmg)**
+or browse [all releases](https://github.com/Mannafee/zielzeit-scalable-capital/releases/latest).
+The universal build runs on Apple silicon and Intel; Xcode is not required.
+
+1. Open the downloaded `Zielzeit.dmg` and drag Zielzeit onto the Applications folder.
+2. Open Zielzeit from Applications. The first launch will be blocked. See below.
+3. Look for the progress ring in your menu bar.
+
+Neither install method avoids the first-launch warning below—the app is not notarized. See
+[why the Homebrew tap exists and what it does not claim](https://github.com/Mannafee/homebrew-tap).
 
 Zielzeit keeps itself up to date. Later versions install quietly in the background, so this is the
 only time you download anything; the new version takes effect the next time you quit and reopen
@@ -278,7 +297,7 @@ Zielzeit. The `…` menu in the popover shows which version you are on, and `Che
 asks immediately if you would rather not wait.
 
 Connecting it to your account then takes two Terminal commands and an email to Scalable Capital,
-which is [explained below](#one-terminal-step-you-cannot-avoid) and which the app walks you through.
+which is [explained below](#one-time-terminal-setup) and which the app walks you through.
 
 ### The first-launch warning is expected
 
@@ -294,15 +313,13 @@ To open it anyway:
 You only do this once. If you would rather not, [build it from source](#build-it-yourself) instead.
 A locally built app is never flagged.
 
-### One Terminal step you cannot avoid
+### One-time Terminal setup
 
 Zielzeit reads your portfolio through Scalable Capital's official command-line tool, and Scalable
 requires that you install it and sign in yourself, so the app is never given your credentials. Even
 with the download, there is a one-time setup involving Terminal. Zielzeit walks you through it with
 copy buttons for every command, but it is fair to know before you start. See
 [Connecting to Scalable Capital](#connecting-to-scalable-capital).
-
-Right-click the menu bar item for Launch at login, refresh, and quit.
 
 ## Build it yourself
 
@@ -353,8 +370,9 @@ around it one tap.
 3. **Sign in.** Run `sc login --local-read-only` yourself in Terminal. Zielzeit shows the command and
    can open Terminal with it typed but not executed.
 
-Then set your goal. `100000`, `100.000`, `€100 000` and `100k` all parse. In German, amounts are
-written the German way, with the symbol after the number: `42 350,18 €`.
+Then set your goal. `100000`, `100.000`, `€100 000` and `100k` all parse. German, French,
+Spanish, and Italian display continental number formatting with the euro sign after the amount:
+`42 350,18 €`.
 
 ### Three things Zielzeit will not do
 
@@ -424,7 +442,7 @@ targets, the UI harnesses, and how to exercise every state without touching a re
 The short version:
 
 ```sh
-make test     # 251 unit tests, all in ZielzeitCore
+make test     # run the complete ZielzeitCore test suite
 make once     # print the report as text, the fastest check of the numbers
 make ui       # rasterize the popover, light and dark
 make help     # every target

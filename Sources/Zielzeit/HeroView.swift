@@ -96,8 +96,8 @@ struct HeroView: View {
                 // Fixed width so the bar starts in the same place whether the
                 // label reads 1% or 100% — wide enough for the latter, which
                 // truncates to "10…" if this is set by eye from a low value.
-                // German needs the extra points for the space before the sign.
-                .frame(width: AppLanguage.current == .german ? 42 : 36, alignment: .leading)
+                // German and French need extra room for the space before the sign.
+                .frame(width: AppLanguage.current.percentSignIsSpaced ? 42 : 36, alignment: .leading)
 
             ProgressBar(progress: report.progress)
         }

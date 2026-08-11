@@ -1,5 +1,5 @@
 /* Zielzeit landing page.
-   Rubik, one accent, no external requests. */
+   App-native graphite, emerald and amber; Rubik; no external requests. */
 
 /* Rubik, self-hosted, under the SIL Open Font License — fonts/OFL.txt travels
    with the woff2 files because the OFL requires the licence to accompany the
@@ -292,69 +292,6 @@ h1 {
 }
 .fineprint { font-size: 13px; color: var(--muted); text-align: center; margin: 20px 0 0; }
 
-/* ── The play pill and the film ─────────────────────────────────
-   The pill sits inside `.stage` but changes nothing about it: the bezel, the
-   drawn wallpaper, the bar, the Dock and the z-order rules above are untouched.
-   It takes z-index 4 so it clears the popover at 3, and lives on the left for
-   the reason the button's own comment gives.
-
-   Nothing here autoplays. An autoplaying video above the fold would trade the
-   page's largest paint for a loop nobody has scrolled to — the same reasoning
-   that keeps demo.gif down in the feature rows — and it is also why
-   `prefers-reduced-motion` needs no case: the film moves only when asked. ── */
-.playpill {
-  position: absolute; z-index: 4;
-  left: clamp(20px, 4vw, 54px);
-  top: 50%; transform: translateY(-50%);
-  display: inline-flex; align-items: center; gap: 10px;
-  min-height: 44px;
-  padding: 12px 20px;
-  font: inherit; font-size: 15px; font-weight: 600;
-  color: #0b2b28;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 999px;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.5);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-}
-.playpill:hover { transform: translateY(-50%) scale(1.03); background: #fff; }
-.playpill:focus-visible { outline: 3px solid var(--accent, #0e9e6b); outline-offset: 3px; }
-.playpill svg { width: 12px; height: 14px; flex: none; }
-
-.filmbox {
-  width: min(96vw, 1000px);
-  padding: 0;
-  border: 0;
-  border-radius: 16px;
-  background: #0d1a17;
-  color: #e8efec;
-  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.7);
-}
-.filmbox::backdrop { background: rgba(8, 14, 12, 0.72); }
-.filmbox__video {
-  display: block;
-  width: 100%; height: auto;
-  border-radius: 16px 16px 0 0;
-  background: #000;
-}
-.filmbox__close {
-  position: absolute; top: 10px; right: 10px;
-  width: 34px; height: 34px;
-  font-size: 15px; line-height: 1;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.5);
-  border: 0; border-radius: 50%;
-  cursor: pointer;
-}
-.filmbox__text { padding: 20px 26px 24px; font-size: 14.5px; line-height: 1.6; }
-.filmbox__text p { margin: 0 0 10px; color: rgba(232, 239, 236, 0.72); }
-.filmbox__text ol { margin: 0 0 12px; padding-left: 22px; }
-.filmbox__text li { margin-bottom: 4px; }
-.filmbox__text .fineprint { margin: 0; text-align: left; color: rgba(232, 239, 236, 0.5); }
-
 /* ── Specs strip ───────────────────────────────────────────── */
 /* ── Icons ─────────────────────────────────────────────────────
    Drawn here as inline SVG rather than pulled from an icon set: the page loads
@@ -434,57 +371,95 @@ h2 {
 
 h3 { font-size: 20px; font-weight: 600; line-height: 1.32; margin: 0 0 10px; }
 
-/* ── Alternating feature rows ──────────────────────────────── */
-.row {
+/* ── Product gallery ───────────────────────────────────────── */
+.feature-grid {
   display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: clamp(32px, 5vw, 72px);
-  align-items: center;
-  padding: clamp(40px, 5vw, 56px) 0;
-  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
 }
-.row:first-of-type { margin-top: 14px; }
-.row--flip .row__text { order: 2; }
-.row--flip .row__art { order: 1; }
-.row__text p { margin: 0 0 12px; font-size: 16px; line-height: 1.62; color: var(--body); }
-.row__text p:last-child { margin-bottom: 0; }
-.row__text em { font-style: normal; font-weight: 600; color: var(--ink); }
-.row__art { display: flex; justify-content: center; }
-
-/* A detail view: the real popover, cropped to the part being described.
-   Offsets are in CSS pixels against the 344px-wide screenshot. */
-.frame {
-  width: 344px;
-  border-radius: 12px;
+.feature-card {
+  min-width: 0;
   overflow: hidden;
-  background: #0d1a17;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 2px 5px rgba(16, 22, 20, 0.07), 0 22px 44px -22px rgba(16, 22, 20, 0.45);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(40, 49, 46, 0.78), rgba(23, 30, 28, 0.96));
+  box-shadow: inset 0 1px rgba(255,255,255,0.05), 0 28px 60px -42px rgba(0,0,0,0.95);
 }
-.frame img { width: 344px; max-width: none; }
-/* Every crop keeps roughly 9px of clear space above and below the block it
-   shows, measured off the screenshot rather than set by eye: `height` is
-   border-box, so the visible window is `height - 2` starting at `-margin-top`,
-   and a window that merely *reaches* the last row reads as a cut edge rather
-   than as a crop. Two of these are constrained by what sits next to them in the
-   popover and cannot simply be padded:
-     - The chart's "2033" annotation starts 2px under the progress bar, so the
-       top pad here is 2px and the bottom pad carries the balance.
-     - For the same reason the German crop stops after the today's-money line
-       instead of including the progress bar: 1px of clearance under the bar is
-       what made this one look broken, and the row is about the German text.
-   The market chip's cycle glyph moved this block's top from y=17 to y=14, which
-   is why the hero offset is -5 and not -8. Everything below y=44 was unmoved, so
-   the other three crops did not need touching — but re-measure after any change
-   to the popover's layout rather than assuming that again. */
-.frame--hero    { height: 125px; }
-.frame--hero img    { margin-top: -5px; }
-.frame--chart   { height: 225px; }
-.frame--chart img   { margin-top: -145px; }
-.frame--sliders { height: 154px; }
-.frame--sliders img { margin-top: -366px; }
-.frame--facts   { height: 69px; }
-.frame--facts img   { margin-top: -531px; }
+.feature-card__visual {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(33,194,135,0.16), transparent 42%),
+    linear-gradient(150deg, #17221f, #0f1513);
+}
+.feature-card__visual::before {
+  content: "";
+  position: absolute;
+  width: 46%;
+  aspect-ratio: 1;
+  top: -24%;
+  right: -8%;
+  z-index: 0;
+  border-radius: 50%;
+  background: rgba(33,194,135,0.15);
+  filter: blur(28px);
+  transition: transform 0.55s cubic-bezier(.2,.8,.2,1), opacity 0.55s ease;
+}
+.feature-card__visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 64%, rgba(10,15,13,0.74));
+}
+.feature-card__visual > img:not(.language-shot) {
+  position: absolute;
+  left: 50%;
+  width: min(82%, 344px);
+  max-width: none;
+  height: auto;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 22px 28px rgba(0,0,0,0.5));
+}
+/* Keep :not(.language-shot) here too — without it these lose to the base rule above. */
+.feature-card__visual--forecast > img:not(.language-shot) { top: -16%; }
+.feature-card__visual--sliders > img:not(.language-shot) { top: 0; transform: translate(-50%, -35%); }
+.feature-card__visual--holdings > img:not(.language-shot) { top: 7%; }
+.feature-card__copy { padding: 23px 24px 26px; }
+.feature-card__copy span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--accent-d);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.feature-card__copy h3 { margin-bottom: 8px; font-size: clamp(19px, 2.2vw, 24px); }
+.feature-card__copy p { margin: 0; color: var(--body); font-size: 15px; line-height: 1.55; }
+
+.feature-card__visual--languages {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255,178,62,0.15), transparent 44%),
+    linear-gradient(150deg, #17221f, #0f1513);
+}
+.language-shot {
+  position: absolute;
+  top: 10%;
+  width: min(54%, 270px);
+  height: auto;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 13px;
+  box-shadow: 0 22px 42px rgba(0,0,0,0.48);
+  transition: transform 0.5s cubic-bezier(.2,.8,.2,1);
+}
+.language-shot--fr { left: 3%; transform: rotate(-5deg); z-index: 0; }
+.language-shot--es { left: 50%; transform: translateX(-50%); z-index: 2; }
+.language-shot--it { right: 3%; transform: rotate(5deg); z-index: 1; }
 
 /* ── Cards ─────────────────────────────────────────────────── */
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -705,8 +680,6 @@ pre code { font: 12.5px/1.65 var(--mono); color: var(--ink); white-space: pre; }
 
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 1000px) {
-  .row { grid-template-columns: 1fr; gap: 28px; }
-  .row--flip .row__text, .row--flip .row__art { order: 0; }
   .setup { grid-template-columns: 1fr; }
   .shot { margin-inline: auto; }
   .specs ul { grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -717,6 +690,7 @@ pre code { font: 12.5px/1.65 var(--mono); color: var(--ink); white-space: pre; }
   .nav__in { gap: 16px; }
   .nav__brand { margin-right: auto; }
   .cards, .cards--two, .callouts { grid-template-columns: 1fr; }
+  .feature-grid { grid-template-columns: 1fr; }
   .specs ul { grid-template-columns: repeat(2, 1fr); }
   .actions .btn { width: 100%; }
   .cmd { flex-wrap: wrap; }
@@ -728,28 +702,424 @@ pre code { font: 12.5px/1.65 var(--mono); color: var(--ink); white-space: pre; }
   /* Nothing is a screen any more once the popover is stacked in flow, and a
      floating Dock with no desktop under it reads as a stray widget. */
   .stage__dock { display: none; }
-  /* Same reason: with the popover in flow there is no empty left third to float
-     over, so the pill joins the flow under it and reads as a caption. This rides
-     the existing 760px breakpoint rather than adding one of its own — the pill
-     has to move at exactly the width the stage stops being a screen. */
-  .playpill {
-    position: static; transform: none;
-    margin: 0 auto 18px;
-    display: flex; width: fit-content;
-  }
-  .playpill:hover { transform: scale(1.03); }
-}
-
-@media (max-width: 560px) {
-  .filmbox { width: 100vw; border-radius: 0; }
-  .filmbox__video { border-radius: 0; }
 }
 
 @media (max-width: 400px) {
-  .frame, .frame img, .stage__pop, .shot img { width: 100%; }
-  .frame img { width: 344px; }
+  .stage__pop, .shot img { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+}
+
+/* ── App-native dark theme ────────────────────────────────────
+   The site and the product now share one visual system: graphite surfaces,
+   emerald progress, amber arrival dates, rounded type and quiet glass. The
+   layout above remains deliberately boring and robust; this layer supplies the
+   atmosphere without changing the document order or accessibility tree. */
+:root {
+  color-scheme: dark;
+  --bg:       #141a18;
+  --alt:      #19201e;
+  --ink:      #f0f3f1;
+  --body:     #b5bfbb;
+  --muted:    #7f8b87;
+  --line:     rgba(231, 242, 237, 0.10);
+  --line-2:   rgba(231, 242, 237, 0.06);
+  --accent:   #21c287;
+  --accent-d: #6bf2d4;
+  --amber:    #ffb23e;
+  --surface:  rgba(35, 43, 40, 0.78);
+  --surface-2: rgba(42, 51, 48, 0.62);
+}
+
+html { background: #101513; }
+
+body {
+  background:
+    radial-gradient(900px 540px at 8% 8%, rgba(42, 217, 160, 0.075), transparent 68%),
+    radial-gradient(780px 520px at 92% 34%, rgba(255, 178, 62, 0.045), transparent 70%),
+    var(--bg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 78%);
+  mask-image: linear-gradient(to bottom, #000, transparent 78%);
+}
+body > * { position: relative; z-index: 1; }
+
+::selection { color: #071712; background: rgba(42, 217, 160, 0.8); }
+a { color: var(--accent-d); }
+a:hover { color: #9af1d2; }
+.skip { color: #071712; background: var(--accent); }
+
+.nav {
+  background: rgba(16, 22, 20, 0.74);
+  border-bottom-color: rgba(231, 242, 237, 0.08);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+}
+.nav__brand img { box-shadow: 0 0 22px rgba(42, 217, 160, 0.24); }
+.nav__links a { color: #9ba6a2; }
+.nav__links a:hover { color: #fff; }
+
+.btn {
+  color: #08241a;
+  background: linear-gradient(135deg, #36e1aa, #20c98f);
+  border-color: rgba(112, 247, 198, 0.45);
+  box-shadow: 0 10px 30px -12px rgba(42, 217, 160, 0.72), inset 0 1px rgba(255, 255, 255, 0.25);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.btn:hover {
+  color: #061b14;
+  background: linear-gradient(135deg, #4be9b6, #29d99f);
+  border-color: rgba(136, 255, 211, 0.65);
+  box-shadow: 0 15px 36px -12px rgba(42, 217, 160, 0.85), inset 0 1px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+.btn--plain {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--line);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.045);
+}
+.btn--plain:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.17);
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(700px 390px at 50% 9%, rgba(42, 217, 160, 0.13), transparent 72%),
+    radial-gradient(480px 360px at 78% 26%, rgba(255, 178, 62, 0.075), transparent 70%),
+    linear-gradient(180deg, #18221f 0%, var(--bg) 68%);
+}
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+}
+.hero::before {
+  width: 420px; height: 420px;
+  left: -250px; top: 180px;
+  border: 1px solid rgba(42, 217, 160, 0.11);
+  box-shadow: 0 0 90px rgba(42, 217, 160, 0.04), inset 0 0 90px rgba(42, 217, 160, 0.025);
+}
+.hero::after {
+  width: 290px; height: 290px;
+  right: -160px; top: 60px;
+  border: 1px solid rgba(255, 178, 62, 0.10);
+  box-shadow: 0 0 70px rgba(255, 178, 62, 0.035);
+}
+.kicker {
+  color: #7debc5;
+  background: rgba(42, 217, 160, 0.085);
+  border: 1px solid rgba(42, 217, 160, 0.16);
+  box-shadow: inset 0 1px rgba(255,255,255,0.035);
+}
+h1 {
+  color: #f3f6f4;
+  letter-spacing: -0.035em;
+  text-shadow: 0 14px 42px rgba(0, 0, 0, 0.26);
+}
+h1 span {
+  color: var(--amber);
+  background: linear-gradient(100deg, #ffd06c 5%, #ffad35 58%, #ff9b2f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sub { color: #aeb9b5; }
+.note { color: var(--muted); }
+.mono {
+  color: #83e9c6;
+  background: rgba(42, 217, 160, 0.09);
+  border: 1px solid rgba(42, 217, 160, 0.10);
+}
+
+.stage {
+  border-color: #303835;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 44px 90px -34px rgba(0, 0, 0, 0.88),
+    0 22px 70px -42px rgba(42, 217, 160, 0.7);
+}
+.stage__pop {
+  box-shadow: 0 30px 65px -14px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255,255,255,0.055);
+}
+.specs {
+  background: rgba(22, 29, 27, 0.82);
+  border-block-color: var(--line);
+}
+.specs li {
+  text-align: left;
+  background: linear-gradient(145deg, rgba(43, 52, 49, 0.78), rgba(28, 35, 33, 0.88));
+  border-color: var(--line);
+  box-shadow: inset 0 1px rgba(255,255,255,0.045), 0 18px 36px -28px rgba(0,0,0,0.9);
+}
+.specs li:hover {
+  transform: translateY(-4px);
+  border-color: rgba(42, 217, 160, 0.23);
+  box-shadow: inset 0 1px rgba(255,255,255,0.06), 0 18px 38px -24px rgba(42,217,160,0.34);
+}
+.specs .ico { margin: 0 0 12px; }
+
+.band { position: relative; }
+.band--alt {
+  background:
+    radial-gradient(620px 460px at 96% 12%, rgba(42, 217, 160, 0.045), transparent 70%),
+    #171e1c;
+  border-block-color: var(--line);
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #72e6be;
+}
+.eyebrow::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(42, 217, 160, 0.8);
+}
+h2 { letter-spacing: -0.025em; color: #f0f3f1; }
+h3 { color: #edf1ef; }
+.cards article,
+.reveal,
+.caveat {
+  background: linear-gradient(145deg, rgba(40, 49, 46, 0.76), rgba(25, 32, 30, 0.92));
+  border-color: var(--line);
+  box-shadow: inset 0 1px rgba(255,255,255,0.04), 0 20px 42px -34px rgba(0,0,0,0.92);
+}
+.cards article:hover {
+  transform: translateY(-5px);
+  border-color: rgba(42, 217, 160, 0.20);
+  box-shadow: inset 0 1px rgba(255,255,255,0.055), 0 24px 48px -30px rgba(42,217,160,0.26);
+}
+.cards p,
+.callouts p,
+.steps p,
+.build p,
+.aside,
+.caveat { color: var(--body); }
+.ico--card {
+  color: #74e8c0;
+  background: rgba(42, 217, 160, 0.09);
+  border: 1px solid rgba(42, 217, 160, 0.10);
+}
+.proof {
+  width: fit-content;
+  padding: 12px 16px;
+  border: 1px solid rgba(42, 217, 160, 0.13);
+  border-radius: 12px;
+  background: rgba(42, 217, 160, 0.055);
+}
+.proof__tick { color: #08231a; box-shadow: 0 0 18px rgba(42,217,160,0.32); }
+.reveal summary { color: #79e7c1; }
+.reveal summary:hover { color: #a2f3d6; }
+.reveal__body p { color: var(--body); }
+.reveal__body code {
+  color: #a4eed4;
+  background: rgba(42, 217, 160, 0.06);
+  border-color: rgba(42, 217, 160, 0.10);
+}
+pre,
+.cmd {
+  background: rgba(8, 14, 12, 0.58);
+  border-color: var(--line);
+  box-shadow: inset 0 1px rgba(255,255,255,0.025);
+}
+pre code,
+.cmd code { color: #dce5e1; }
+.audit__out { background: #0b1310; border-color: rgba(42,217,160,0.14); }
+.warn { border-left-color: var(--amber); }
+.copy {
+  color: #b8c5c0;
+  background: rgba(255,255,255,0.055);
+  border-color: var(--line);
+}
+.copy:hover,
+.copy[data-done] {
+  color: #7fefc7;
+  border-color: rgba(42, 217, 160, 0.35);
+  background: rgba(42, 217, 160, 0.075);
+}
+.steps li::before {
+  color: #08231a;
+  background: linear-gradient(135deg, #46e4b0, #24cd95);
+  box-shadow: 0 8px 22px -10px rgba(42,217,160,0.9);
+}
+.shot img {
+  border-color: rgba(255,255,255,0.09);
+  box-shadow: 0 30px 58px -30px rgba(0,0,0,0.9), 0 18px 42px -38px rgba(42,217,160,0.7);
+}
+
+.close {
+  background:
+    radial-gradient(480px 280px at 50% 48%, rgba(42, 217, 160, 0.10), transparent 70%),
+    linear-gradient(180deg, #151b19, #18211e);
+  border-top-color: var(--line);
+}
+.close img { box-shadow: 0 0 42px rgba(42,217,160,0.24); }
+.foot { background: #101513; border-top-color: var(--line); }
+.foot__links a { color: #9ba7a2; }
+.foot__links a:hover { color: #fff; }
+.foot p { color: #707d78; }
+
+@media (max-width: 760px) {
+  .specs li { text-align: center; }
+  .specs .ico { margin-inline: auto; }
+  .hero::before { left: -330px; }
+  h1 { letter-spacing: -0.025em; }
+}
+
+/* ── Motion and interaction ───────────────────────────────────
+   Motion clarifies hierarchy: the hero arrives once, content resolves as it is
+   reached, and the navigation shows progress. Nothing loops in the foreground,
+   and every effect has a reduced-motion exit. */
+.nav__progress {
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-d), var(--accent), var(--amber));
+  box-shadow: 0 0 14px rgba(42, 217, 160, 0.42);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+.nav__links a {
+  position: relative;
+  transition: color 0.18s ease;
+}
+.nav__links a::after {
+  content: "";
+  position: absolute;
+  left: 50%; right: 50%; bottom: -8px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(42, 217, 160, 0.55);
+  transition: left 0.2s ease, right 0.2s ease;
+}
+.nav__links a[aria-current="true"] { color: #fff; }
+.nav__links a[aria-current="true"]::after { left: 0; right: 0; }
+
+.btn { position: relative; overflow: hidden; }
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: -2px auto -2px -45%;
+  width: 34%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.34), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.5s cubic-bezier(.2,.8,.2,1);
+  pointer-events: none;
+}
+.btn:hover::after { left: 118%; }
+.btn--plain::after { opacity: 0.38; }
+
+.stage {
+  --spot-x: 78%;
+  --spot-y: 8%;
+}
+.stage::after {
+  background: radial-gradient(520px circle at var(--spot-x) var(--spot-y), rgba(255,255,255,0.12), transparent 62%);
+}
+
+.feature-card {
+  transition: transform 0.34s cubic-bezier(.2,.8,.2,1), border-color 0.34s ease, box-shadow 0.34s ease;
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(42,217,160,0.22);
+  box-shadow: 0 34px 68px -30px rgba(0,0,0,0.96), 0 20px 52px -34px rgba(42,217,160,0.75);
+}
+.feature-card:hover .feature-card__visual::before { transform: scale(1.45) translate(-10%, 12%); opacity: 0.8; }
+.feature-card:hover .language-shot--fr { transform: translate(-7px, -5px) rotate(-7deg); }
+.feature-card:hover .language-shot--es { transform: translate(-50%, -8px); }
+.feature-card:hover .language-shot--it { transform: translate(7px, -5px) rotate(7deg); }
+
+.reveal[open] .reveal__body { animation: disclosure-in 0.3s ease both; }
+
+.motion-ready .scroll-reveal {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s cubic-bezier(.2,.75,.2,1) var(--reveal-delay, 0ms),
+    transform 0.65s cubic-bezier(.2,.75,.2,1) var(--reveal-delay, 0ms),
+    filter 0.65s ease var(--reveal-delay, 0ms);
+}
+.motion-ready .scroll-reveal.is-visible {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+@keyframes disclosure-in {
+  from { opacity: 0; transform: translateY(-7px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stage-arrive {
+  from { opacity: 0; transform: translateY(34px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ambient-drift-left {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(34px, -18px, 0); }
+}
+@keyframes ambient-drift-right {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-26px, 22px, 0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero .kicker,
+  .hero h1,
+  .hero .sub,
+  .hero .actions,
+  .hero .cmd--hero,
+  .hero > .wrap > .note {
+    opacity: 0;
+    animation: hero-rise 0.72s cubic-bezier(.2,.75,.2,1) forwards;
+  }
+  .hero h1 { animation-delay: 70ms; }
+  .hero .sub { animation-delay: 140ms; }
+  .hero .actions { animation-delay: 210ms; }
+  .hero .cmd--hero { animation-delay: 280ms; }
+  .hero > .wrap > .note { animation-delay: 335ms; }
+  .stage { animation: stage-arrive 0.9s cubic-bezier(.16,.8,.25,1) 240ms both; }
+  .hero::before { animation: ambient-drift-left 14s ease-in-out infinite; }
+  .hero::after { animation: ambient-drift-right 17s ease-in-out infinite; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__progress { display: none; }
+  .feature-card:hover { transform: none; }
+  .feature-card:hover .language-shot--fr { transform: rotate(-5deg); }
+  .feature-card:hover .language-shot--es { transform: translateX(-50%); }
+  .feature-card:hover .language-shot--it { transform: rotate(5deg); }
 }
