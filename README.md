@@ -65,6 +65,18 @@ The same popover, in German:
   <img src="docs/popover-de.png" alt="The same Zielzeit popover in German: Prognose 2033, In 7,1 Jahren hast du etwa 250 000 €, with the scenarios Vorsichtig, Moderat and Dein Tempo" width="344">
 </p>
 
+Swipe sideways for your **positions**, measured in the same unit as everything else — time:
+
+<p align="center">
+  <img src="docs/holdings.png" alt="The Zielzeit holdings page: a card reading 21.6 weeks closer to your goal, 2034 without gains against 2033 yours, a portfolio bar with five segments over invested €36 420 and a market gain of €5 930, then each position with its share, return and weeks contributed" width="344">
+</p>
+
+The headline is the question this app exists to ask, asked of your gains: **how much sooner do you
+arrive because of them?** Take each position's unrealised gain out of the total, re-run the
+projection, and the difference is what that holding bought you — in weeks, and in the arrival year
+itself when it moves one. Underneath, the whole portfolio as one bar, and every position with its
+share, its return since purchase and its contribution in time.
+
 <sub>Figures in every screenshot are synthetic demo data, not a real account.</sub>
 
 ## Safety
@@ -225,11 +237,12 @@ read every fixture here without seeing anyone's holdings.
   6 months, past year. The window is always named, because the sign differs between them.
 - **Caveats that match the numbers.** The disclaimer quotes the rate, contribution and goal actually
   on screen.
-- **Your holdings, measured in time.** Swipe from the projection to a second page that converts each
+- **Your positions, measured in time.** Swipe from the projection to a second page that converts each
   position's gain into how much earlier it brings the goal — the same conversion the whole app is
-  built on, applied one position at a time. Alongside it: the whole portfolio as one bar, what you
-  paid against what the market added, every position's return since purchase against the portfolio's
-  own, and what a 10, 20 or 30% fall would cost you in arrival date.
+  built on, applied one holding at a time. Alongside it: the whole portfolio as one bar with what you
+  paid against what the market added, and each position's share, return since purchase and
+  contribution in weeks. It flags a holding whose return is well off the portfolio's own, and says by
+  how much.
 
 ## Requirements
 
