@@ -36,6 +36,16 @@ enum ViewState {
         return report.defaultMove?.direction
     }
 
+    /// The report on screen, when there is one.
+    ///
+    /// The holdings page needs the projection to measure its weeks against, and it
+    /// can only be opened from `.ready` — so this is how it asks, rather than by
+    /// re-deriving a report of its own.
+    var report: Report? {
+        guard case .ready(let report) = self else { return nil }
+        return report
+    }
+
     /// Progress for the ring icon, or `nil` when a symbol should be shown instead.
     ///
     /// Once connected the icon is always a ring — an empty one before a goal is

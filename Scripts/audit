@@ -73,33 +73,38 @@ CLIENT=Sources/ZielzeitCore/ScalableClient.swift
 #
 # Not a search for the word "trade": `sc broker trade` is two arguments, so the
 # thing to check is every place a `broker` subcommand is named, and that the verb
-# beside it is one of the three reads. A bare grep for the verbs would also match
+# beside it is one of the four reads. A bare grep for the verbs would also match
 # the error handling, which looks for "login" in the CLI's *output* to tell a dead
 # session apart from a real failure — a check that fires on that gets loosened
 # until it means nothing.
+#
+# `holdings` joined the list in 1.4, for the holdings page. The check is no weaker
+# for it: the allowlist is still exhaustive and still spelled out here, so a fifth
+# verb fails until someone writes it down on purpose.
 broker_lines=$(grep -rn '"broker"' --include='*.swift' Sources/ 2>/dev/null)
 verbs=$(printf '%s\n' "$broker_lines" | grep -oE '"broker", "[a-z-]+"' | sed 's/.*, "//;s/"//' | sort -u)
 searched "grep -rn '\"broker\"' --include='*.swift' Sources/" "$broker_lines"
-unexpected=$(printf '%s\n' "$verbs" | grep -vxE 'overview|savings-plans|transactions')
+unexpected=$(printf '%s\n' "$verbs" | grep -vxE 'overview|savings-plans|transactions|holdings')
 if [ -z "$unexpected" ] && [ -n "$verbs" ]; then
-    pass "broker write commands" "none" "the only broker verbs are overview, savings-plans, transactions"
+    pass "broker write commands" "none" \
+        "the only broker verbs are overview, savings-plans, transactions, holdings"
 else
     fail "broker write commands" "$(printf '%s' "$unexpected" | grep -c .) found" \
-        "a broker subcommand that is not one of the three reads:"
+        "a broker subcommand that is not one of the four reads:"
     printf '%s\n' "$unexpected" | sed 's/^/         /'
 fi
 
-# ── 2. The commands are enumerated, and there are five ─────────────────────
+# ── 2. The commands are enumerated, and there are six ──────────────────────
 #
 # Everything Zielzeit can ask the broker is a member of ScalableClient.Command.
-# Four are constant argument arrays; `transactions` is a function because it
-# takes a date and a cursor. Counting them is what makes "exactly five" a fact
-# rather than a sentence: add a sixth and this check reports six.
+# Five are constant argument arrays; `transactions` is a function because it takes
+# a date and a cursor. Counting them is what makes "exactly six" a fact rather
+# than a sentence: add a seventh and this check reports seven.
 #
 # The count alone would not be enough, so two more things are asserted: every
 # call site passes a `Command` member rather than an array of its own, and no
 # argument list is built literally anywhere else. That is what closes the gap
-# between "the enum holds five reads" and "five reads is all it can run".
+# between "the enum holds six reads" and "six reads is all it can run".
 enum_body=$(awk '/^    enum Command \{/,/^    \}/' "$CLIENT")
 constants=$(printf '%s\n' "$enum_body" | grep -cE 'static let [a-zA-Z]+ = \["')
 functions=$(printf '%s\n' "$enum_body" | grep -cE 'static func [a-zA-Z]+\(')
@@ -107,10 +112,11 @@ commands=$((constants + functions))
 searched "awk '/enum Command/,/^    }/' $CLIENT  # count argument-producing members" \
     "$(printf '%s\n' "$enum_body" | grep -E 'static (let [a-zA-Z]+ = \["|func [a-zA-Z]+\()')"
 
-# The five, spelled as the CLI sees them. Each must appear in the enum, so a
-# rename that quietly widened the set cannot pass by keeping the count at five.
+# The six, spelled as the CLI sees them. Each must appear in the enum, so a
+# rename that quietly widened the set cannot pass by keeping the count at six.
 missing=''
 for argv in '"broker", "overview"' '"broker", "savings-plans"' '"broker", "transactions"' \
+            '"broker", "holdings"' \
             '"whoami"' '"installation-code"'; do
     printf '%s\n' "$enum_body" | grep -qF "$argv" || missing="$missing $argv"
 done
@@ -123,9 +129,9 @@ call_sites=$(grep -c 'arguments: Command\.' "$CLIENT" 2>/dev/null)
 searched "grep -rn 'arguments: \[\"' --include='*.swift' Sources/  # argv built outside the enum" \
     "$literal_argv"
 
-if [ "$commands" -eq 5 ] && [ -z "$missing" ] && [ -z "$literal_argv" ] && [ "$call_sites" -eq 5 ]; then
-    pass "broker commands enumerated" "5" \
-        "overview, savings-plans, transactions, whoami, installation-code"
+if [ "$commands" -eq 6 ] && [ -z "$missing" ] && [ -z "$literal_argv" ] && [ "$call_sites" -eq 6 ]; then
+    pass "broker commands enumerated" "6" \
+        "overview, savings-plans, transactions, holdings, whoami, installation-code"
 elif [ -n "$literal_argv" ]; then
     fail "broker commands enumerated" "$commands" \
         "an argument list is built outside Command, so the enum is no longer exhaustive:"
@@ -134,7 +140,7 @@ elif [ -n "$missing" ]; then
     fail "broker commands enumerated" "$commands" "these are no longer present:$missing"
 else
     fail "broker commands enumerated" "$commands" \
-        "the enum no longer holds exactly five commands — read it, then update this check and the README"
+        "the enum no longer holds exactly six commands — read it, then update this check and the README"
 fi
 
 # ── 3. No networking of its own ─────────────────────────────────────────────

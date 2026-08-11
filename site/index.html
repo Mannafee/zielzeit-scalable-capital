@@ -175,7 +175,7 @@
           <path d="M2.5 12S6 6.25 12 6.25 21.5 12 21.5 12S18 17.75 12 17.75 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
           <circle cx="12" cy="12" r="2.75" stroke="currentColor" stroke-width="1.75"/>
         </svg>
-        <b>Read-only</b><span>Five commands, no writes</span>
+        <b>Read-only</b><span>Six commands, no writes</span>
       </li>
       <li>
         <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -202,7 +202,7 @@
     <p class="eyebrow">Safety</p>
     <h2>Read-only, and checked rather than promised</h2>
     <p class="sub sub--left">
-      Zielzeit can run exactly five commands against your broker, and none of them writes. You do not
+      Zielzeit can run exactly six commands against your broker, and none of them writes. You do not
       have to take that on trust: each promise below is checked against the source code automatically,
       every time anything changes.
     </p>
@@ -234,8 +234,8 @@ cd zielzeit-scalable-capital
 make audit</code></pre>
         <pre class="audit__out"><code><b>Zielzeit audit</b>  — against Sources/, not against the README
 
-  <i>✓</i>  broker write commands        none   the only broker verbs are overview, savings-plans, transactions
-  <i>✓</i>  broker commands enumerated   5      overview, savings-plans, transactions, whoami, installation-code
+  <i>✓</i>  broker write commands        none   the only broker verbs are overview, savings-plans, transactions, holdings
+  <i>✓</i>  broker commands enumerated   6      overview, savings-plans, transactions, holdings, whoami, installation-code
   <i>✓</i>  networking code              none   no URLSession, Network.framework or socket API in the app
   <i>✓</i>  shell invocation             none   one Process(), run by absolute path with an argument array
   <i>✓</i>  credential access            none   no Keychain, no token, no read of the CLI's session
@@ -262,7 +262,7 @@ make audit</code></pre>
           <path d="M3.4 20.6 20.6 3.4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It cannot trade, sell, or move money</h3>
-        <p>The five commands it may run are listed in one place in the code, and there is no route to a sixth. Signing in the way the setup asks also puts the session itself in read-only mode, so the command-line tool blocks every write — whether or not you trust this app.</p>
+        <p>The six commands it may run are listed in one place in the code, and there is no route to a seventh. Signing in the way the setup asks also puts the session itself in read-only mode, so the command-line tool blocks every write — whether or not you trust this app.</p>
       </article>
       <article>
         <!-- A Terminal, not a slashed padlock: the point is that signing in
@@ -336,6 +336,19 @@ make audit</code></pre>
 
     <div class="row row--flip">
       <div class="row__text">
+        <h3>Your positions, measured in time</h3>
+        <p>Swipe sideways for the holdings page, which asks this app's only question of your gains: how much sooner do you arrive because of them? Each position's unrealised gain comes out of the total, the projection is re-run, and the difference is what that holding bought you — in weeks, and in the arrival year when it moves one.</p>
+        <p>Underneath, the whole portfolio as a single bar, what you paid against what the market added, and every position with its share, its return since purchase and its contribution in time. A holding whose return sits well off the portfolio's own is flagged, with the gap named in percentage points.</p>
+      </div>
+      <div class="row__art">
+        <div class="frame frame--chart">
+          <img src="img/holdings.png" width="344" loading="lazy" alt="The holdings page: a card reading 21.6 weeks closer to your goal, 2034 without gains against 2033 yours, a portfolio bar of five segments over invested €36 420 and a market gain of €5 930, then each position with its share, return and weeks contributed">
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row__text">
         <h3>Two what-if sliders, both ways round</h3>
         <p><em>Save more</em> previews what another €200 a month does to every projection, live, without changing anything in your broker.</p>
         <p><em>Reach by</em> inverts it: pick a year, get the monthly contribution that lands on it.</p>
@@ -352,7 +365,7 @@ make audit</code></pre>
       </div>
     </div>
 
-    <div class="row">
+    <div class="row row--flip">
       <div class="row__text">
         <h3>Measured, not guessed</h3>
         <p>Your contributions are walked from a year of real transactions, not inferred from today's savings plan rate. On a live account that difference was over a full percentage point.</p>
@@ -365,7 +378,7 @@ make audit</code></pre>
       </div>
     </div>
 
-    <div class="row row--flip">
+    <div class="row">
       <div class="row__text">
         <h3>English and German</h3>
         <p>Picked from your Mac's language and switchable in the app. Amounts follow it too: <span class="mono">€250 000</span> in English, <span class="mono">250 000 €</span> in German.</p>

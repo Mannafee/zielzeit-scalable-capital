@@ -56,7 +56,7 @@ jobs:
           # social-preview.png is copied because the page's og:image points at it:
           # the card has to be served from this origin, not linked out of docs/.
           cp docs/icon.png docs/menubar.png \
-             docs/popover.png docs/popover-de.png \
+             docs/popover.png docs/popover-de.png docs/holdings.png \
              docs/setup.png docs/setup-de.png \
              docs/demo.gif docs/social-preview.png \
              docs/promo.mp4 docs/promo-poster.jpg site/img/

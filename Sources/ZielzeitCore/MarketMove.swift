@@ -93,11 +93,14 @@ public struct MarketMove: Equatable {
         self.window = window
         self.gain = gain
         self.windowLabel = window.label(isCurrentSession: isCurrentSession)
-        // The payload carries a `performance` field intended for exactly this, but
-        // the live CLI returns `0` for every window — including ones with a return
-        // of well over a thousand euros — so it cannot be used. Deriving it needs
-        // the value the window *started* at, which is today's total less what was
-        // made over it.
+        // Derived rather than read, because the payload reports no percentage at
+        // all: each performance entry carries an absolute return and nothing else.
+        // Earlier CLI versions did carry a `performance` field intended for exactly
+        // this, and returned `0` in it for every window — including ones with a
+        // return of well over a thousand euros — which is why deriving started; sc
+        // 0.6.0 dropped the field rather than fixing it, so there is still nothing
+        // to read. Deriving needs the value the window *started* at, which is
+        // today's total less what was made over it.
         let start = total - gain
         self.fraction = start > 0 ? gain / start : nil
     }

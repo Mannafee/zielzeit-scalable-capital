@@ -69,6 +69,39 @@ public enum Format {
         return AppLanguage.current == .german ? "\(value)\(thinSpace)%" : "\(value)%"
     }
 
+    /// A number of weeks, for the holdings page's time contributions.
+    ///
+    /// One decimal, and unsigned: on that page the sign is carried by the wording
+    /// ("earlier" / "later") and by which side of the axis a bar grows from, so a
+    /// minus here would state it a third time — and, next to the word "later", state
+    /// it backwards.
+    ///
+    /// Branches on the language rather than going through the shared formatter, for
+    /// the same reason `years` does: a number that sits directly against a word
+    /// takes the separator of the language that wrote the word, not of the Mac's
+    /// region. On a machine set to English with German formats, the alternative puts
+    /// `21,6` next to `weeks`.
+    public static func weeks(_ weeks: Double) -> String {
+        switch AppLanguage.current {
+        case .english: return String(format: "%.1f", abs(weeks))
+        case .german: return decimalString(abs(weeks), decimals: 1)
+        }
+    }
+
+    /// A difference between two percentages, e.g. `-5.5` for −5.5 pp.
+    ///
+    /// Signed, unlike `percent`: a gap's direction is the whole content of the
+    /// figure, and the unit is written by the caller because "pp" and "PP" differ
+    /// between the two languages.
+    public static func percentagePoints(_ fraction: Double, decimals: Int = 1) -> String {
+        let value = fraction * 100
+        let sign = value > 0 ? "+" : (value < 0 ? "−" : "")
+        switch AppLanguage.current {
+        case .english: return sign + String(format: "%.\(decimals)f", abs(value))
+        case .german: return sign + decimalString(abs(value), decimals: decimals)
+        }
+    }
+
     /// An abbreviated span for a data column, e.g. `11.6 yrs` / `11,6 J.`
     public static func years(_ months: Double) -> String {
         switch AppLanguage.current {

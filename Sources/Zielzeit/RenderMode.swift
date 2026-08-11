@@ -2,6 +2,29 @@ import AppKit
 import SwiftUI
 import ZielzeitCore
 
+/// Whether this view tree is being rasterized by `--render` rather than shown in a
+/// real popover.
+///
+/// `ImageRenderer` cannot rasterize AppKit-backed content, and a SwiftUI
+/// `ScrollView` is AppKit-backed — a page inside one renders as an empty rectangle.
+/// The holdings page reads this to lay itself out at full height for the renderer
+/// while scrolling in the app, so `make ui` and `make shots` keep working on the one
+/// screen tall enough to need scrolling.
+///
+/// The only environment flag of its kind, and it should stay that way: it makes what
+/// is rendered differ from what ships, which is worth it to keep a page reviewable
+/// and worth nothing anywhere else.
+private struct RasterizingKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var isRasterizing: Bool {
+        get { self[RasterizingKey.self] }
+        set { self[RasterizingKey.self] = newValue }
+    }
+}
+
 /// `zielzeit --render <path> [state] [--dark]`: rasterize the popover to a PNG.
 ///
 /// A popover cannot be opened from a script without accessibility permission, so
@@ -33,6 +56,7 @@ enum RenderMode {
 
         let view = PopoverView(model: model, onQuit: {})
             .environment(\.colorScheme, dark ? .dark : .light)
+            .environment(\.isRasterizing, true)
             .background(dark ? Color(white: 0.13) : Color(white: 0.97))
 
         let renderer = ImageRenderer(content: view)

@@ -13,7 +13,7 @@ DIST     := dist
 UNIVERSAL := .build/apple/Products/Release/Zielzeit
 
 # Which state the UI harness targets: ready | slider | target-year | caveats |
-# market-down | no-goal | loading | failure | editing | setup-cli |
+# market-down | holdings | no-goal | loading | failure | editing | setup-cli |
 # setup-access | setup-requested
 STATE ?= ready
 
@@ -55,7 +55,7 @@ site: ## Serve the GitHub Pages site locally at http://localhost:8000
 	@# social-preview.png is copied because the page's og:image points at it: the
 	@# card has to be served from this origin, not linked out of docs/ on GitHub.
 	@cp docs/icon.png docs/menubar.png \
-	    docs/popover.png docs/popover-de.png \
+	    docs/popover.png docs/popover-de.png docs/holdings.png \
 	    docs/setup.png docs/setup-de.png \
 	    docs/demo.gif docs/social-preview.png \
 	    docs/promo.mp4 docs/promo-poster.jpg site/img/
@@ -82,12 +82,19 @@ shots: ## Regenerate the README screenshots in docs/ from synthetic data
 		.build/debug/Zielzeit --shot docs/popover-de.png ready --dark --scale 2
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=de \
 		.build/debug/Zielzeit --shot docs/setup-de.png setup-access --dark --scale 2
+	@# The holdings page uses --render, not --shot, and that is the one deliberate
+	@# difference in here: --shot captures a real window, so it would show the page
+	@# clipped to the popover's height with the rest behind a scroll. The README wants
+	@# the whole page, which is what the renderer's full-height layout gives. Same
+	@# stub, same language handling, same 2× scale as the shots above.
+	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
+		.build/debug/Zielzeit --render docs/holdings.png holdings --dark
 	@.build/debug/Zielzeit --menubar docs/menubar.png --dark --scale 8
 	@.build/debug/Zielzeit --icons docs/menubar-states.png --dark >/dev/null
 	@rm -rf .build/readme-iconset
 	@.build/debug/Zielzeit --appicon .build/readme-iconset >/dev/null
 	@cp .build/readme-iconset/icon_256x256@2x.png docs/icon.png
-	@echo "Wrote docs/{popover,popover-de,setup,setup-de,menubar,menubar-states,icon}.png"
+	@echo "Wrote docs/{popover,popover-de,setup,setup-de,holdings,menubar,menubar-states,icon}.png"
 
 demo: ## Regenerate docs/demo.gif (the slider sweeping, for the top of the README)
 	@# Deliberately not part of `shots`: it rebuilds the popover once per frame and
