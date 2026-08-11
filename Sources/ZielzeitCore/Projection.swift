@@ -57,8 +57,16 @@ public enum Projection {
 
     /// Geometric annual-to-monthly conversion. Used for every scenario so the
     /// comparison between them is apples-to-apples.
+    ///
+    /// Floored at −100% a year, which is the edge of the conversion's domain: a
+    /// twelfth root of a negative base is `NaN`, and `NaN` does not announce
+    /// itself here — every comparison against it is false, so `monthsToGoal`
+    /// would quietly answer "never reached" for what is really an unusable input.
+    /// The floor keeps the arithmetic finite and the failure legible instead. It
+    /// cannot be reached from inside the app, where `rateClamp` holds every rate
+    /// to ±30%; it is the public entry point that needs the guard.
     public static func monthlyRate(annual: Double) -> Double {
-        pow(1 + annual, 1.0 / 12.0) - 1
+        pow(1 + max(annual, -1), 1.0 / 12.0) - 1
     }
 
     // MARK: - Dynamization
@@ -279,10 +287,14 @@ public enum Projection {
     // MARK: - Balance over time
 
     /// One point on a projected balance curve.
+    ///
+    /// `month` is fractional rather than whole because of the last point: samples
+    /// land on whole months, but a curve stopped at a ceiling stops where it
+    /// actually crosses, which is somewhere inside a month.
     public struct BalancePoint: Equatable, Identifiable {
-        public let month: Int
+        public let month: Double
         public let balance: Double
-        public var id: Int { month }
+        public var id: Double { month }
     }
 
     /// The balance after `month` months of compounding plus contributions.
@@ -352,6 +364,16 @@ public enum Projection {
         guard months > 0 else { return [BalancePoint(month: 0, balance: value)] }
         let stride = max(step, 1)
 
+        // Where the curve meets the ceiling, solved rather than sampled. `step`
+        // thins the samples on a long horizon, so the first sample at or above the
+        // ceiling can be several months past the crossing — and that sample is the
+        // point a chart draws its arrival dot on, beside a year taken from the
+        // exact figure. Same function and same arguments the headline's arrival
+        // comes from, so the two are one number rather than two that agree.
+        let crossing = ceiling.flatMap {
+            monthsToGoal(value: value, goal: $0, monthlyRate: r, monthlySavings: p, dynamizationRate: g)
+        }
+
         var points: [BalancePoint] = []
         var month = 0
         while month <= months {
@@ -363,11 +385,13 @@ public enum Projection {
                 dynamizationRate: g
             )
             if let ceiling, balance >= ceiling {
-                // Land the curve on the ceiling instead of overshooting past it.
-                points.append(BalancePoint(month: month, balance: ceiling))
+                // Land the curve on the ceiling instead of overshooting past it —
+                // at the crossing when it could be solved, and at this sample when
+                // it could not, which is the horizon running past `maxMonths`.
+                points.append(BalancePoint(month: crossing ?? Double(month), balance: ceiling))
                 return points
             }
-            points.append(BalancePoint(month: month, balance: balance))
+            points.append(BalancePoint(month: Double(month), balance: balance))
             if month == months { break }
             month = min(month + stride, months)
         }
