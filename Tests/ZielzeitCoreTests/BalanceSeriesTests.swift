@@ -81,7 +81,7 @@ final class BalanceSeriesTests: XCTestCase {
     }
 
     /// The cross-check that matters: where the curve meets the goal must be the
-    /// month the headline projection reports.
+    /// month the headline projection reports — exactly, not to within a sample.
     func testSeriesCrossesTheGoalAtTheProjectedMonth() throws {
         let r = Projection.monthlyRate(annual: Report.moderateRate)
         let expected = try XCTUnwrap(
@@ -90,8 +90,48 @@ final class BalanceSeriesTests: XCTestCase {
         let series = Projection.balanceSeries(
             value: value, monthlyRate: r, monthlySavings: savings, months: 600, ceiling: goal
         )
-        let crossing = try XCTUnwrap(series.last).month
-        XCTAssertEqual(Double(crossing), expected.rounded(.up), accuracy: 1.0)
+        XCTAssertEqual(try XCTUnwrap(series.last).month, expected, accuracy: 1e-9)
+    }
+
+    /// The crossing is solved, not sampled. A thinned series must land on the same
+    /// month a dense one does: the last point is what a chart draws its arrival dot
+    /// on, beside a year taken from the exact projection, so a sample-sized gap
+    /// between them shows as a dot sitting past its own label.
+    func testThinnedSeriesStillCrossesAtTheExactMonth() throws {
+        let r = Projection.monthlyRate(annual: Report.moderateRate)
+        let dense = try XCTUnwrap(
+            Projection.balanceSeries(
+                value: value, monthlyRate: r, monthlySavings: savings,
+                months: 600, step: 1, ceiling: goal
+            ).last
+        )
+        for step in [4, 7, 13, 60] {
+            let thinned = try XCTUnwrap(
+                Projection.balanceSeries(
+                    value: value, monthlyRate: r, monthlySavings: savings,
+                    months: 600, step: step, ceiling: goal
+                ).last
+            )
+            XCTAssertEqual(thinned.month, dense.month, accuracy: 1e-9, "step \(step)")
+            XCTAssertEqual(thinned.balance, goal, "step \(step)")
+        }
+    }
+
+    /// Dynamization walks the balance in twelve-month blocks, so the crossing has
+    /// to come from the same walk rather than from the flat closed form.
+    func testCrossingMatchesTheProjectionUnderDynamization() throws {
+        let r = Projection.monthlyRate(annual: Report.moderateRate)
+        let expected = try XCTUnwrap(
+            Projection.monthsToGoal(
+                value: value, goal: goal, monthlyRate: r,
+                monthlySavings: savings, dynamizationRate: 0.05
+            )
+        )
+        let series = Projection.balanceSeries(
+            value: value, monthlyRate: r, monthlySavings: savings,
+            months: 600, step: 5, ceiling: goal, dynamizationRate: 0.05
+        )
+        XCTAssertEqual(try XCTUnwrap(series.last).month, expected, accuracy: 1e-9)
     }
 
     // MARK: - Report curves
@@ -121,6 +161,15 @@ final class BalanceSeriesTests: XCTestCase {
             let last = try XCTUnwrap(curve.points.last)
             XCTAssertTrue(curve.reachesGoal, curve.label)
             XCTAssertEqual(last.balance, goal, accuracy: 0.01, curve.label)
+        }
+    }
+
+    /// The invariant the chart depends on: the point it draws the arrival dot on
+    /// and the figure it takes the annotated year from are the same month.
+    func testEveryCurveEndsOnItsOwnArrivalMonth() throws {
+        for curve in report(extra: 350).curves(extraMonthlySavings: 350) {
+            let arrival = try XCTUnwrap(curve.arrivalMonths, curve.label)
+            XCTAssertEqual(try XCTUnwrap(curve.points.last).month, arrival, accuracy: 1e-9, curve.label)
         }
     }
 

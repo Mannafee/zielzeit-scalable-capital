@@ -49,7 +49,10 @@ struct ProjectionChartView: View {
                     .interpolationMethod(.monotone)
                 }
 
-                // A dot where each scenario meets the goal.
+                // A dot where each scenario meets the goal. The curve's own last
+                // point, which `balanceSeries` puts on the crossing rather than on
+                // the sample after it — so the dot cannot sit a month or two past
+                // the year annotated beside it.
                 if let arrival = curve.arrivalMonths, let last = curve.points.last {
                     PointMark(
                         x: .value("Month", last.month),
@@ -76,15 +79,15 @@ struct ProjectionChartView: View {
                 .foregroundStyle(.secondary.opacity(0.5))
         }
         .chartYScale(domain: 0...(report.goal * 1.06))
-        .chartXScale(domain: 0...max(horizon, 12))
+        .chartXScale(domain: 0...Double(max(horizon, 12)))
         .chartYAxis(.hidden)
         .chartXAxis {
             AxisMarks(values: xAxisMonths) { value in
                 AxisGridLine()
                     .foregroundStyle(.quaternary.opacity(0.5))
-                if let month = value.as(Int.self) {
+                if let month = value.as(Double.self) {
                     AxisValueLabel {
-                        Text(String(Projection.arrivalYear(months: Double(month), from: report.asOf)))
+                        Text(String(Projection.arrivalYear(months: month, from: report.asOf)))
                             .font(.system(size: 9, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
@@ -96,12 +99,14 @@ struct ProjectionChartView: View {
         .animation(.snappy(duration: 0.35), value: extraSavings)
     }
 
-    /// Four or five year ticks, whatever the horizon.
-    private var xAxisMonths: [Int] {
+    /// Four or five year ticks, whatever the horizon. Whole months, unlike the
+    /// curves' own last point: a tick is a label, and a gridline between two
+    /// months has nothing to say.
+    private var xAxisMonths: [Double] {
         let ticks = 4
         let span = max(horizon, 12)
         let step = max(span / ticks, 1)
-        return Array(stride(from: 0, through: span, by: step))
+        return stride(from: 0, through: span, by: step).map(Double.init)
     }
 
     /// Keep the headline annotation from colliding with the goal line at the top

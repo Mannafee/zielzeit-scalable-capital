@@ -43,6 +43,30 @@ final class ProjectionTests: XCTestCase {
         XCTAssertEqual(pow(1 + monthly, 12) - 1, 0.06, accuracy: 1e-12)
     }
 
+    /// A twelfth root of a negative base is `NaN`, and `NaN` fails every
+    /// comparison downstream — `monthsToGoal` would report "never reached" for an
+    /// input that is unusable rather than merely pessimistic.
+    func testMonthlyRateStaysFiniteBelowATotalLoss() {
+        for annual in [-1.0, -1.5, -12.0] {
+            let monthly = Projection.monthlyRate(annual: annual)
+            XCTAssertFalse(monthly.isNaN, "\(annual)")
+            XCTAssertEqual(monthly, -1, accuracy: 1e-12, "\(annual)")
+        }
+    }
+
+    func testProjectionsStayFiniteBelowATotalLoss() {
+        // Nothing compounds, so a goal above one month's deposit never arrives —
+        // an answer, where a NaN rate produced the same `nil` by accident.
+        XCTAssertNil(
+            Projection.monthsToGoal(value: 10_000, goal: 100_000, annualRate: -2, monthlySavings: 500)
+        )
+        let balance = Projection.balance(
+            value: 10_000, monthlyRate: Projection.monthlyRate(annual: -2),
+            monthlySavings: 500, afterMonths: 12
+        )
+        XCTAssertEqual(balance, 500, accuracy: 1e-9)
+    }
+
     // MARK: - Months to goal
 
     func testGoalAlreadyReached() {
