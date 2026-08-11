@@ -20,7 +20,7 @@
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="Zielzeit: when will my portfolio reach my goal? A menu bar item reading 17% and 2033, beside a large progress ring.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#141a18">
 <link rel="icon" href="img/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="img/icon.png">
 <link rel="stylesheet" href="style.css">
@@ -42,6 +42,7 @@
       <a href="https://github.com/Mannafee/zielzeit-scalable-capital">GitHub</a>
     </nav>
     <a class="btn btn--sm" href="#download">Download</a>
+    <span class="nav__progress" data-scroll-progress aria-hidden="true"></span>
   </div>
 </header>
 
@@ -50,7 +51,7 @@
 <section class="hero" id="top">
   <div class="wrap">
     <p class="kicker">Free and open source for Scalable Capital investors</p>
-    <h1>When will my portfolio reach my goal?</h1>
+    <h1>When will my portfolio <span>reach my goal?</span></h1>
     <p class="sub">
       Zielzeit keeps the answer in your menu bar, read from your account through the official
       Scalable CLI — read&#8209;only, no scraping, no credentials.
@@ -74,7 +75,7 @@
 
   <!-- The app as it actually appears: hanging from the menu bar. -->
   <div class="wrap wrap--wide">
-    <div class="stage">
+    <div class="stage" data-tilt>
       <div class="stage__bar" aria-hidden="true">
         <div class="stage__items">
           <img class="stage__app" src="img/menubar.png" width="298" alt="">
@@ -109,48 +110,9 @@
         <span class="dock__tile dock__tile--4"></span>
       </div>
 
-      <!-- Left, not centred: the popover is anchored right and the Dock is
-           centred, so the left third is the only region empty at every width —
-           the same convergence the Dock's z-order note above describes. The
-           still stays the page's largest paint; nothing plays until this is
-           pressed, which is also why `prefers-reduced-motion` needs no case
-           here. -->
-      <button class="playpill" type="button" data-film>
-        <svg viewBox="0 0 12 14" aria-hidden="true"><path d="M1 1l10 6-10 6z" fill="currentColor"/></svg>
-        Watch the 25-second tour
-      </button>
     </div>
     <p class="fineprint">Every figure shown on this page is synthetic demo data, not a real account.</p>
   </div>
-
-  <!-- A native <dialog>: Escape closes it and focus containment comes free, so
-       there is no focus-trap JavaScript to get wrong. The captions are burned
-       into the film and therefore invisible to a screen reader, so the same
-       five lines are printed below as a transcript. Keep them in step with
-       FilmArtwork's copy. -->
-  <dialog class="filmbox" id="film" aria-label="Zielzeit: the 25-second tour">
-    <form method="dialog"><button class="filmbox__close" aria-label="Close">✕</button></form>
-    <!-- `data-poster`, not `poster`, and that is not pedantry: a closed <dialog>
-         is display:none, which defers the video itself but *not* its poster —
-         Chrome fetches it on page load, so the attribute cost 130KB on every
-         visit to a page where most people never press play. main.js assigns it on
-         first open. `preload="none"` is what defers the 2.5MB video. -->
-    <video class="filmbox__video" controls playsinline preload="none"
-           data-poster="img/promo-poster.jpg" width="1920" height="1200">
-      <source src="img/promo.mp4" type="video/mp4">
-    </video>
-    <div class="filmbox__text">
-      <p>Silent, 25 seconds. What it says, in order:</p>
-      <ol>
-        <li>When will I actually get there?</li>
-        <li>The year, in your menu bar.</li>
-        <li>Three scenarios. Yours is measured, not assumed.</li>
-        <li>Save more, and watch the year move.</li>
-        <li>Read-only. Nothing leaves your Mac.</li>
-      </ol>
-      <p class="fineprint">Every figure in the film is synthetic demo data, not a real account.</p>
-    </div>
-  </dialog>
 </section>
 
 <section class="specs">
@@ -201,11 +163,7 @@
   <div class="wrap">
     <p class="eyebrow">Safety</p>
     <h2>Read-only, and checked rather than promised</h2>
-    <p class="sub sub--left">
-      Zielzeit can run exactly six commands against your broker, and none of them writes. You do not
-      have to take that on trust: each promise below is checked against the source code automatically,
-      every time anything changes.
-    </p>
+    <p class="sub sub--left">Six read commands. Zero write commands. Checked automatically on every change.</p>
 
     <!-- The proof, in one line a non-developer can read, with the terminal output
          one click behind it. An earlier draft opened this section with the raw
@@ -262,7 +220,7 @@ make audit</code></pre>
           <path d="M3.4 20.6 20.6 3.4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It cannot trade, sell, or move money</h3>
-        <p>The six commands it may run are listed in one place in the code, and there is no route to a seventh. Signing in the way the setup asks also puts the session itself in read-only mode, so the command-line tool blocks every write — whether or not you trust this app.</p>
+        <p>Six allowlisted read commands, backed by a read-only CLI session.</p>
       </article>
       <article>
         <!-- A Terminal, not a slashed padlock: the point is that signing in
@@ -273,7 +231,7 @@ make audit</code></pre>
           <path d="M12.75 15.25h4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It never sees your password or your 2FA</h3>
-        <p>You sign in yourself, in your own Terminal window, exactly as Scalable Capital asks. Zielzeit types the command in and stops there: it never runs it, never sees what you enter, and never touches the session afterwards.</p>
+        <p>You authenticate in Terminal. Zielzeit never receives credentials or tokens.</p>
       </article>
       <article>
         <svg class="ico ico--card" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -281,7 +239,7 @@ make audit</code></pre>
           <path d="M3.6 20.4 20.4 3.6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>Your data cannot leave your Mac</h3>
-        <p>There is no internet code in the app at all — no analytics, no tracking, no account to sign up for. Your figures go from the broker's own tool to the screen and no further. The one thing Zielzeit fetches is its own update feed, which carries nothing about you.</p>
+        <p>No analytics or network client—figures go from the official CLI to the popover.</p>
       </article>
       <article>
         <!-- Exactly three rows, because the claim is exactly three values. -->
@@ -290,7 +248,7 @@ make audit</code></pre>
           <path d="M7.5 9.25h9M7.5 12.75h9M7.5 16.25h5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It keeps three values, and no figures</h3>
-        <p>Your goal amount, your language, and whether you have emailed for beta access. No balance, no holdings, no name — those are fetched, shown, and forgotten when the app quits.</p>
+        <p>Goal, language, and beta-request status. Portfolio data is forgotten on quit.</p>
       </article>
     </div>
 
@@ -301,7 +259,7 @@ make audit</code></pre>
           <path d="M9 11.75 11.2 14l4.3-4.3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <h3>macOS will warn you once</h3>
-        <p>The download is signed but not notarized, which needs a paid Apple Developer account this project does not have. Open <b>System Settings → Privacy &amp; Security</b> and click <b>Open Anyway</b>. Once, ever.</p>
+        <p>It is signed, but not notarized. Use <b>Privacy &amp; Security → Open Anyway</b> once.</p>
       </div>
       <div>
         <!-- A dashed boundary: the absent box is the whole point. -->
@@ -310,7 +268,7 @@ make audit</code></pre>
           <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
         </svg>
         <h3>It is not sandboxed, and cannot be</h3>
-        <p>A sandboxed app cannot launch another program, and Zielzeit's whole job is to run the command-line tool you installed. What limits it is that it is small, open and readable end to end, not an OS boundary.</p>
+        <p>The app must launch the CLI. Its limits are small, open, auditable code.</p>
       </div>
     </div>
   </div>
@@ -320,75 +278,54 @@ make audit</code></pre>
   <div class="wrap">
     <p class="eyebrow">Features</p>
     <h2>A year you can see without opening anything</h2>
+    <p class="sub sub--left">Four views. One answer: when you get there.</p>
 
-    <div class="row">
-      <div class="row__text">
-        <h3>Three scenarios on one chart</h3>
-        <p>Cautious at 3%, moderate at 6%, and your own pace: the return your portfolio actually achieved over the trailing year, measured with the <a href="https://en.wikipedia.org/wiki/Simple_Dietz_method">simple Dietz method</a>. Each curve stops where it meets the goal.</p>
-        <p>The headline uses your pace, not a house assumption, so the year moves with how you are actually doing.</p>
-      </div>
-      <div class="row__art">
-        <div class="frame frame--chart">
-          <img src="img/popover.png" width="344" alt="The projection chart with three curves, and the scenario list showing cautious 3.0% arriving 2042, moderate 6.0% arriving 2039, and your pace 19.7% arriving 2033">
+    <div class="feature-grid">
+      <article class="feature-card">
+        <div class="feature-card__visual feature-card__visual--forecast">
+          <img src="img/popover.png" width="1032" height="2061" alt="Zielzeit's projection chart comparing cautious, moderate, and personal return scenarios">
         </div>
-      </div>
-    </div>
+        <div class="feature-card__copy">
+          <span>Forecast</span>
+          <h3>Three paths. One arrival year.</h3>
+          <p>Your actual pace sits beside cautious and moderate scenarios.</p>
+        </div>
+      </article>
 
-    <div class="row row--flip">
-      <div class="row__text">
-        <h3>Your positions, measured in time</h3>
-        <p>Swipe sideways for the holdings page, which asks this app's only question of your gains: how much sooner do you arrive because of them? Each position's unrealised gain comes out of the total, the projection is re-run, and the difference is what that holding bought you — in weeks, and in the arrival year when it moves one.</p>
-        <p>Underneath, the whole portfolio as a single bar, what you paid against what the market added, and every position with its share, its return since purchase and its contribution in time. A holding whose return sits well off the portfolio's own is flagged, with the gap named in percentage points.</p>
-      </div>
-      <div class="row__art">
-        <div class="frame frame--chart">
-          <img src="img/holdings.png" width="344" loading="lazy" alt="The holdings page: a card reading 21.6 weeks closer to your goal, 2034 without gains against 2033 yours, a portfolio bar of five segments over invested €36 420 and a market gain of €5 930, then each position with its share, return and weeks contributed">
+      <article class="feature-card">
+        <div class="feature-card__visual feature-card__visual--sliders">
+          <img src="img/slider.png" width="1032" height="2013" loading="lazy" alt="Zielzeit's save-more and reach-by sliders updating the goal year">
         </div>
-      </div>
-    </div>
+        <div class="feature-card__copy">
+          <span>What if?</span>
+          <h3>Move a slider. Move the date.</h3>
+          <p>Try saving more—or choose a year and see the monthly amount.</p>
+        </div>
+      </article>
 
-    <div class="row">
-      <div class="row__text">
-        <h3>Two what-if sliders, both ways round</h3>
-        <p><em>Save more</em> previews what another €200 a month does to every projection, live, without changing anything in your broker.</p>
-        <p><em>Reach by</em> inverts it: pick a year, get the monthly contribution that lands on it.</p>
-      </div>
-      <div class="row__art">
-        <!-- The one place on this page that has to move. The prose beside it says
-             "live", and a still of a slider is the one screenshot that cannot show
-             the thing it is describing. Deliberately here and not in the hero: it is
-             556KB, and above the fold that trades the largest paint on the page for
-             a loop nobody has scrolled to yet. `loading="lazy"` keeps it free. -->
-        <div class="frame frame--sliders">
-          <img src="img/demo.gif" width="344" alt="The save more slider being dragged: the projected year counts down from 2033 to 2030, the sentence goes from 7.1 years to 3.5, and all three projection curves steepen to meet the goal line sooner" loading="lazy">
+      <article class="feature-card">
+        <div class="feature-card__visual feature-card__visual--holdings">
+          <img src="img/holdings.png" width="1032" height="2420" loading="lazy" alt="Holdings translated into weeks closer to the portfolio goal">
         </div>
-      </div>
-    </div>
+        <div class="feature-card__copy">
+          <span>Holdings</span>
+          <h3>See what each position bought you—in time.</h3>
+          <p>Returns become weeks closer to your goal, not another abstract percentage.</p>
+        </div>
+      </article>
 
-    <div class="row row--flip">
-      <div class="row__text">
-        <h3>Measured, not guessed</h3>
-        <p>Your contributions are walked from a year of real transactions, not inferred from today's savings plan rate. On a live account that difference was over a full percentage point.</p>
-        <p>Inflation is on screen too: the goal restated in today's money, not hidden behind a toggle.</p>
-      </div>
-      <div class="row__art">
-        <div class="frame frame--facts">
-          <img src="img/popover.png" width="344" alt="The portfolio facts: portfolio €42 350,18, saving €500,00 a month across two plans with a 5% yearly step-up, and past year +€6 480,72" loading="lazy">
+      <article class="feature-card">
+        <div class="feature-card__visual feature-card__visual--languages" aria-label="Zielzeit shown in French, Spanish, and Italian">
+          <img class="language-shot language-shot--fr" src="img/popover-fr.png" width="1032" height="2061" loading="lazy" alt="Zielzeit in French">
+          <img class="language-shot language-shot--es" src="img/popover-es.png" width="1032" height="2061" loading="lazy" alt="">
+          <img class="language-shot language-shot--it" src="img/popover-it.png" width="1032" height="2061" loading="lazy" alt="">
         </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="row__text">
-        <h3>English · Deutsch · Français · Español · Italiano</h3>
-        <p>Zielzeit follows the first supported language in your Mac's preferences by default. Prefer another? Switch at any time from the Language menu, or choose System to keep following macOS.</p>
-        <p>It is more than translated labels: numbers, dates, percentages, and euro placement follow the selected language too.</p>
-      </div>
-      <div class="row__art">
-        <div class="frame frame--hero">
-          <img src="img/popover-de.png" width="344" alt="The same popover in German: Prognose 2033, In 7,1 Jahren hast du etwa 250 000 €" loading="lazy">
+        <div class="feature-card__copy">
+          <span>Five languages</span>
+          <h3>English · Deutsch · Français · Español · Italiano</h3>
+          <p>Labels, dates, numbers, and currency all follow your chosen language.</p>
         </div>
-      </div>
+      </article>
     </div>
 
   </div>
@@ -398,16 +335,13 @@ make audit</code></pre>
   <div class="wrap">
     <p class="eyebrow">Setup</p>
     <h2>Three steps, one of them an email</h2>
-    <p class="sub sub--left">
-      The Scalable CLI is in beta and gated: Scalable Capital has to allowlist your machine before it
-      can log in at all. The app walks you through all three steps on first launch.
-    </p>
+    <p class="sub sub--left">The app walks you through the CLI beta setup on first launch.</p>
 
     <div class="setup">
       <ol class="steps">
         <li>
           <h3>Install the CLI</h3>
-          <p>From Scalable Capital's own Homebrew tap. Zielzeit never bundles the binary — their guidance is to trust only official artifacts.</p>
+          <p>Directly from Scalable Capital's official Homebrew tap.</p>
           <div class="cmd">
             <code>brew install scalable-cli</code>
             <button class="copy" type="button" data-copy="brew tap ScalableCapital/tap && brew install scalable-cli">Copy</button>
@@ -415,12 +349,12 @@ make audit</code></pre>
         </li>
         <li>
           <h3>Request beta access</h3>
-          <p>Zielzeit reads your installation code and opens a prefilled email to <span class="mono">cli.beta@scalable.capital</span>. Nothing to compose.</p>
-          <p class="warn"><b>Send it from the address registered with Scalable Capital.</b> They match the request by sender, and one from any other address is silently never answered. A <span class="mono">mailto:</span> link opens your default account, which often is not that one — check the From field.</p>
+          <p>A prefilled email includes your installation code.</p>
+          <p class="warn"><b>Use the email registered with Scalable Capital.</b></p>
         </li>
         <li>
           <h3>Sign in yourself</h3>
-          <p>An OAuth device-code flow, in your Terminal and your browser. <span class="mono">--local-read-only</span> stores the session in locally enforced read-only mode.</p>
+          <p>OAuth in your browser, with a locally enforced read-only session.</p>
           <div class="cmd">
             <code>sc login --local-read-only</code>
             <button class="copy" type="button" data-copy="sc login --local-read-only">Copy</button>

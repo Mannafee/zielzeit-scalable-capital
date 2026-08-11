@@ -128,14 +128,21 @@ if let index = arguments.firstIndex(of: "--shot") {
 
 if let index = arguments.firstIndex(of: "--render") {
     guard arguments.count > index + 1 else {
-        FileHandle.standardError.write(Data("usage: zielzeit --render <path> [state] [--dark]\n".utf8))
+        FileHandle.standardError.write(Data("usage: zielzeit --render <path> [state] [--dark] [--scale N]\n".utf8))
         exit(2)
     }
     let path = arguments[index + 1]
     let state = arguments.count > index + 2 && !arguments[index + 2].hasPrefix("--")
         ? arguments[index + 2]
         : "ready"
-    exit(MainActor.assumeIsolated { RenderMode.run(path: path, stateName: state, dark: arguments.contains("--dark")) })
+    exit(MainActor.assumeIsolated {
+        RenderMode.run(
+            path: path,
+            stateName: state,
+            dark: arguments.contains("--dark"),
+            scale: scaleArgument ?? 2
+        )
+    })
 }
 
 let controller = MainActor.assumeIsolated { () -> StatusItemController in

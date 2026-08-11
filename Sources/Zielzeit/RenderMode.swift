@@ -37,6 +37,7 @@ enum RenderMode {
         path: String,
         stateName: String,
         dark: Bool,
+        scale: Int = 2,
         provider: PortfolioProviding = ScalableClient(),
         goalStore: GoalStore = GoalStore()
     ) -> Int32 {
@@ -60,7 +61,7 @@ enum RenderMode {
             .background(dark ? Color(white: 0.13) : Color(white: 0.97))
 
         let renderer = ImageRenderer(content: view)
-        renderer.scale = 2
+        renderer.scale = CGFloat(scale)
 
         // Semantic colours resolve against the current drawing appearance, so
         // rasterizing has to happen inside the requested one — otherwise both

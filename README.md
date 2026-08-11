@@ -86,9 +86,12 @@ time from the **Language** menu. Labels, numbers, dates, percentages, and euro p
 the selected language.
 
 <details>
-<summary><b>Preview the German interface</b></summary>
+<summary><b>Preview the localized interfaces</b></summary>
 <p align="center">
-  <img src="docs/popover-de.png" alt="The same Zielzeit popover in German: Prognose 2033, In 7,1 Jahren hast du etwa 250 000 €, with the scenarios Vorsichtig, Moderat and Dein Tempo" width="344">
+  <img src="docs/popover-de.png" alt="Zielzeit in German" width="190">
+  <img src="docs/popover-fr.png" alt="Zielzeit in French" width="190">
+  <img src="docs/popover-es.png" alt="Zielzeit in Spanish" width="190">
+  <img src="docs/popover-it.png" alt="Zielzeit in Italian" width="190">
 </p>
 </details>
 

@@ -56,10 +56,9 @@ jobs:
           # social-preview.png is copied because the page's og:image points at it:
           # the card has to be served from this origin, not linked out of docs/.
           cp docs/icon.png docs/menubar.png \
-             docs/popover.png docs/popover-de.png docs/holdings.png \
-             docs/setup.png docs/setup-de.png \
-             docs/demo.gif docs/social-preview.png \
-             docs/promo.mp4 docs/promo-poster.jpg site/img/
+             docs/popover.png docs/popover-de.png docs/popover-fr.png \
+             docs/popover-es.png docs/popover-it.png docs/slider.png docs/holdings.png \
+             docs/setup.png docs/setup-de.png docs/social-preview.png site/img/
 
       # The README's usage badges, served from the site as shields.io endpoints.
       # Non-fatal on purpose: the badges are a nicety and the site is not, so a

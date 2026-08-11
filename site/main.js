@@ -1,4 +1,4 @@
-/* Two things: copy buttons on the command blocks, and the film lightbox. */
+/* Copy buttons plus restrained, progressive-enhancement motion. */
 
 /* Copy buttons on the command blocks. */
 (function () {
@@ -39,59 +39,114 @@
   });
 })();
 
-/* The film lightbox. A native <dialog>, so Escape and focus containment are the
-   platform's job rather than ours. Playback starts on open and is paused and
-   rewound on close — a closed dialog that goes on playing to an empty room is
-   both a wasted download and a surprise if it is reopened mid-film. */
+/* Reveal the page in readable groups as it enters the viewport. Content stays
+   fully visible when JavaScript is unavailable or reduced motion is requested. */
 (function () {
   "use strict";
 
-  var dialog = document.getElementById("film");
-  var trigger = document.querySelector("[data-film]");
-  var video = dialog && dialog.querySelector("video");
-  /* All three up front, so nothing below has to re-check. Guarding `video` only
-     at some use sites is how the play-invariant listener below ends up being the
-     one that throws, which would leave the click handler registered and the
-     invariant silently uninstalled — the worst of both. */
-  if (!dialog || !trigger || !video || typeof dialog.showModal !== "function") { return; }
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced || !("IntersectionObserver" in window)) { return; }
 
-  trigger.addEventListener("click", function () {
-    dialog.showModal();
-    /* Assign the poster on first open. A closed dialog is display:none, which
-       defers the video but not a `poster` attribute, so leaving it in the markup
-       billed every visitor 130KB for a frame most never see. */
-    if (video.dataset.poster) {
-      video.poster = video.dataset.poster;
-      delete video.dataset.poster;
+  var selector = [
+    ".specs li",
+    ".band .eyebrow",
+    ".band h2",
+    ".band .sub",
+    ".proof",
+    ".reveal",
+    ".cards article",
+    ".callouts > div",
+    ".feature-card",
+    ".steps li",
+    ".shot",
+    ".build",
+    ".close .wrap"
+  ].join(",");
+  var targets = Array.prototype.slice.call(document.querySelectorAll(selector));
+
+  targets.forEach(function (target, index) {
+    target.classList.add("scroll-reveal");
+    target.style.setProperty("--reveal-delay", ((index % 5) * 55) + "ms");
+    if (target.getBoundingClientRect().top < window.innerHeight * 0.96) {
+      target.classList.add("is-visible");
     }
-    var played = video.play();
-    /* Autoplay policy can refuse even a user-initiated play on some
-       configurations, and pausing mid-play rejects with AbortError. The controls
-       are there, so a refusal is recoverable and an unhandled rejection in the
-       console is not worth it. */
-    if (played && played.catch) { played.catch(function () {}); }
   });
+  document.documentElement.classList.add("motion-ready");
 
-  dialog.addEventListener("close", stop);
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) { return; }
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: "0px 0px -8%", threshold: 0.08 });
 
-  /* The invariant, rather than a race to win: the film never plays to a shut
-     dialog. A `pause()` issued from the close handler does not stick if it lands
-     while the `play()` promise is still unsettled — playback starts anyway once
-     it resolves, and a closed <dialog> is display:none, so the film goes on
-     playing where nobody can see it. Asserting it here catches that ordering and
-     every other one, because whatever route playback starts by, it fires `play`. */
-  video.addEventListener("play", function () {
-    if (!dialog.open) { stop(); }
+  targets.forEach(function (target) {
+    if (!target.classList.contains("is-visible")) { observer.observe(target); }
   });
+})();
 
-  function stop() {
-    video.pause();
-    video.currentTime = 0;
+/* A fine progress line and an active section marker turn the sticky nav into a
+   map of the page rather than a floating row of unrelated links. */
+(function () {
+  "use strict";
+
+  var progress = document.querySelector("[data-scroll-progress]");
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav__links a[href^="#"]'));
+  var ticking = false;
+
+  function updateProgress() {
+    var range = document.documentElement.scrollHeight - window.innerHeight;
+    var value = range > 0 ? Math.min(Math.max(window.scrollY / range, 0), 1) : 0;
+    if (progress) { progress.style.transform = "scaleX(" + value + ")"; }
+    ticking = false;
   }
 
-  /* Clicking the backdrop closes it: the dialog element itself is the click
-     target when the press lands outside its content box. */
-  dialog.addEventListener("click", function (event) {
-    if (event.target === dialog) { dialog.close(); }
+  window.addEventListener("scroll", function () {
+    if (ticking) { return; }
+    ticking = true;
+    window.requestAnimationFrame(updateProgress);
+  }, { passive: true });
+  updateProgress();
+
+  if (!("IntersectionObserver" in window)) { return; }
+  var sectionObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) { return; }
+      links.forEach(function (link) {
+        var active = link.getAttribute("href") === "#" + entry.target.id;
+        if (active) { link.setAttribute("aria-current", "true"); }
+        else { link.removeAttribute("aria-current"); }
+      });
+    });
+  }, { rootMargin: "-32% 0px -58%", threshold: 0 });
+
+  links.forEach(function (link) {
+    var section = document.querySelector(link.getAttribute("href"));
+    if (section) { sectionObserver.observe(section); }
+  });
+})();
+
+/* The desktop stage gets a soft cursor-following reflection. It changes only a
+   gradient position, so the 2x app screenshot stays pixel-crisp. */
+(function () {
+  "use strict";
+
+  var stage = document.querySelector("[data-tilt]");
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var precisePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (!stage || reduced || !precisePointer) { return; }
+
+  stage.addEventListener("pointermove", function (event) {
+    var bounds = stage.getBoundingClientRect();
+    var x = ((event.clientX - bounds.left) / bounds.width) * 100;
+    var y = ((event.clientY - bounds.top) / bounds.height) * 100;
+    stage.style.setProperty("--spot-x", x.toFixed(1) + "%");
+    stage.style.setProperty("--spot-y", y.toFixed(1) + "%");
+  });
+
+  stage.addEventListener("pointerleave", function () {
+    stage.style.removeProperty("--spot-x");
+    stage.style.removeProperty("--spot-y");
   });
 })();

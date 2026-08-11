@@ -55,10 +55,9 @@ site: ## Serve the GitHub Pages site locally at http://localhost:8000
 	@# social-preview.png is copied because the page's og:image points at it: the
 	@# card has to be served from this origin, not linked out of docs/ on GitHub.
 	@cp docs/icon.png docs/menubar.png \
-	    docs/popover.png docs/popover-de.png docs/holdings.png \
-	    docs/setup.png docs/setup-de.png \
-	    docs/demo.gif docs/social-preview.png \
-	    docs/promo.mp4 docs/promo-poster.jpg site/img/
+	    docs/popover.png docs/popover-de.png docs/popover-fr.png \
+	    docs/popover-es.png docs/popover-it.png docs/slider.png docs/holdings.png \
+	    docs/setup.png docs/setup-de.png docs/social-preview.png site/img/
 	@echo "Serving site/ at http://localhost:8000  (ctrl-C to stop)"
 	@python3 -m http.server 8000 --directory site
 
@@ -73,28 +72,36 @@ shots: ## Regenerate the README screenshots in docs/ from synthetic data
 	@# stored preference, so without it a developer who has switched the app to
 	@# German would quietly regenerate the English screenshots in German.
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
-		.build/debug/Zielzeit --shot docs/popover.png ready --dark --scale 2
+		.build/debug/Zielzeit --shot docs/popover.png ready --dark --scale 3
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
-		.build/debug/Zielzeit --shot docs/setup.png setup-access --dark --scale 2
+		.build/debug/Zielzeit --shot docs/slider.png slider --dark --scale 3
+	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
+		.build/debug/Zielzeit --shot docs/setup.png setup-access --dark --scale 3
 	@# The same two states in German. Same stub, same goal, same scale, so the
 	@# pair differs only in language.
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=de \
-		.build/debug/Zielzeit --shot docs/popover-de.png ready --dark --scale 2
+		.build/debug/Zielzeit --shot docs/popover-de.png ready --dark --scale 3
+	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=fr \
+		.build/debug/Zielzeit --shot docs/popover-fr.png ready --dark --scale 3
+	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=es \
+		.build/debug/Zielzeit --shot docs/popover-es.png ready --dark --scale 3
+	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=it \
+		.build/debug/Zielzeit --shot docs/popover-it.png ready --dark --scale 3
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=de \
-		.build/debug/Zielzeit --shot docs/setup-de.png setup-access --dark --scale 2
+		.build/debug/Zielzeit --shot docs/setup-de.png setup-access --dark --scale 3
 	@# The holdings page uses --render, not --shot, and that is the one deliberate
 	@# difference in here: --shot captures a real window, so it would show the page
 	@# clipped to the popover's height with the rest behind a scroll. The README wants
 	@# the whole page, which is what the renderer's full-height layout gives. Same
-	@# stub, same language handling, same 2× scale as the shots above.
+	@# stub, same language handling, same 3× scale as the shots above.
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
-		.build/debug/Zielzeit --render docs/holdings.png holdings --dark
+		.build/debug/Zielzeit --render docs/holdings.png holdings --dark --scale 3
 	@.build/debug/Zielzeit --menubar docs/menubar.png --dark --scale 8
 	@.build/debug/Zielzeit --icons docs/menubar-states.png --dark >/dev/null
 	@rm -rf .build/readme-iconset
 	@.build/debug/Zielzeit --appicon .build/readme-iconset >/dev/null
 	@cp .build/readme-iconset/icon_256x256@2x.png docs/icon.png
-	@echo "Wrote docs/{popover,popover-de,setup,setup-de,holdings,menubar,menubar-states,icon}.png"
+	@echo "Wrote 3× app captures, including every supported language, to docs/."
 
 demo: ## Regenerate docs/demo.gif (the slider sweeping, for the top of the README)
 	@# Deliberately not part of `shots`: it rebuilds the popover once per frame and
