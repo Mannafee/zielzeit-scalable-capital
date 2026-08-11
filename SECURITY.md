@@ -21,8 +21,8 @@ It runs on every push and pull request as the
 which is what keeps this page from drifting away from the code.
 
 ```
-  ✓  broker write commands        none          the only broker verbs are overview, savings-plans, transactions
-  ✓  broker commands enumerated   5             overview, savings-plans, transactions, whoami, installation-code
+  ✓  broker write commands        none          the only broker verbs are overview, savings-plans, transactions, holdings
+  ✓  broker commands enumerated   6             overview, savings-plans, transactions, holdings, whoami, installation-code
   ✓  networking code              none          no URLSession, Network.framework or socket API in the app
   ✓  shell invocation             none          one Process(), run by absolute path with an argument array
   ✓  credential access            none          no Keychain, no token, no read of the CLI's session
@@ -32,7 +32,7 @@ which is what keeps this page from drifting away from the code.
 
 ## What it can do
 
-Run five read-only commands through the official
+Run six read-only commands through the official
 [Scalable Capital CLI](https://github.com/ScalableCapital/scalable-cli), which you
 install and sign in to yourself:
 
@@ -41,6 +41,7 @@ install and sign in to yourself:
 | `sc broker overview` | Portfolio value and trailing returns |
 | `sc broker savings-plans` | Monthly contribution and step-up rate |
 | `sc broker transactions` | Deposits and withdrawals over the past year |
+| `sc broker holdings` | Each position: quantity, average cost, valuation |
 | `sc whoami` | Whether the session works, and your first name |
 | `sc installation-code` | The code you email to request beta access |
 

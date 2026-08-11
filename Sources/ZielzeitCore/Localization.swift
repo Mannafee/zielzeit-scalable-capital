@@ -540,4 +540,124 @@ public enum Strings {
         )
     }
     public static var thenSignIn: String { pick("Then sign in:", "Dann anmelden:") }
+
+    // MARK: - Holdings page
+
+    /// The page's own name, on the button that opens it and in its header.
+    ///
+    /// "Positionen" rather than "Beteiligungen": it is the word a German broker
+    /// statement uses for the lines in a portfolio, and Scalable's own app uses it.
+    public static var holdings: String { pick("Holdings", "Positionen") }
+    public static var back: String { pick("Back", "Zurück") }
+
+    public static var readingHoldings: String {
+        pick("Reading your positions…", "Positionen werden gelesen…")
+    }
+    public static var cantReadHoldings: String {
+        pick("Can't read your positions", "Positionen nicht lesbar")
+    }
+    public static var noHoldings: String { pick("No positions", "Keine Positionen") }
+    public static var noHoldingsMessage: String {
+        pick(
+            "The broker reports no positions in this portfolio yet.",
+            "Der Broker meldet für dieses Portfolio noch keine Positionen."
+        )
+    }
+
+    /// Marks figures behind a quote the broker itself flagged as stale.
+    public static var quoteOutdated: String {
+        pick("Some quotes are stale", "Einige Kurse sind veraltet")
+    }
+
+    // MARK: - Holdings · time contribution
+
+    public static var whatBoughtYouTime: String {
+        pick("What bought you time", "Was Zeit gebracht hat")
+    }
+
+    /// The hero's two labels, under the two years.
+    public static var yours: String { pick("yours", "mit Gewinn") }
+    public static var withoutGains: String { pick("without gains", "ohne Gewinn") }
+
+    /// Stands in for the second year when the goal is never reached without the
+    /// gains, which is a stronger statement than any date.
+    public static var withoutGainsNever: String {
+        pick("out of reach", "unerreichbar")
+    }
+
+    /// Names the page's one composition mark.
+    public static var theWholePortfolio: String {
+        pick("What you hold", "Was du hältst")
+    }
+
+    /// The hero when the gains do not move the arrival *year* — the ordinary case,
+    /// since a few thousand euros against a six-figure goal is weeks, not years.
+    ///
+    /// Said plainly rather than dressed up: printing the same year twice with an
+    /// arrow between them would claim the gains changed nothing, and inventing month
+    /// precision to force a visible difference would claim the projection is sharper
+    /// than it is.
+    /// Deliberately without the number: the line directly beneath carries the weeks
+    /// and the euros, and stating the weeks here too put the same figure twice in
+    /// adjacent lines — once as "later", once as "earlier".
+    public static var sameYearWithoutGains: String {
+        pick("Without your gains, the same year.", "Ohne deine Gewinne dasselbe Jahr.")
+    }
+
+    /// The hero when they do move it.
+    public static func withoutGainsYear(_ year: Int) -> String {
+        pick("Without your gains: \(year)", "Ohne deine Gewinne: \(year)")
+    }
+
+    /// The hero unit. Weeks rather than months because the numbers are small: a
+    /// gain worth 0.4 months reads as nothing, the same gain as two weeks reads as
+    /// something.
+    public static func weeksEarlier(_ weeks: String) -> String {
+        pick("\(weeks) weeks earlier", "\(weeks) Wochen früher")
+    }
+    public static func weeksLater(_ weeks: String) -> String {
+        pick("\(weeks) weeks later", "\(weeks) Wochen später")
+    }
+    public static var weeksAbbreviated: String { pick("wk", "Wo.") }
+
+    /// Says out loud what the hero figure is, so the number is not mistaken for a
+    /// return.
+    public static func gainsInGoalTime(_ gain: String) -> String {
+        pick(
+            "Your \(gain) of gains, as arrival date.",
+            "Dein Gewinn von \(gain), als Zieldatum."
+        )
+    }
+
+    /// Shown in place of a bar when the goal is not reached without that position.
+    public static var withoutItNoArrival: String {
+        pick("carries the goal", "trägt das Ziel")
+    }
+
+    public static var noArrivalToMove: String {
+        pick(
+            "No projected arrival to move, so there is no time to attribute.",
+            "Ohne Prognose gibt es keine Zeit, die sich zuordnen ließe."
+        )
+    }
+
+    // MARK: - Holdings · cost basis
+
+    public static var yourMoneyAndTheMarkets: String {
+        pick("Your money · the market's", "Dein Geld · das des Marktes")
+    }
+    public static func paidIn(_ amount: String) -> String {
+        pick("Paid in \(amount)", "Eingezahlt \(amount)")
+    }
+    public static func earned(_ amount: String) -> String {
+        pick("Earned \(amount)", "Erwirtschaftet \(amount)")
+    }
+
+    // MARK: - Holdings · since buy
+
+    public static var sinceYouBought: String { pick("Since you bought", "Seit dem Kauf") }
+    public static func portfolioAt(_ percent: String) -> String {
+        pick("portfolio \(percent)", "Portfolio \(percent)")
+    }
+
 }

@@ -32,7 +32,7 @@
 
 <p align="center">
   <b>It reads your broker account, so here is the short version first.</b><br>
-  Five read-only commands · no credentials, ever · no networking code at all<br>
+  Six read-only commands · no credentials, ever · no networking code at all<br>
   <sub><code>make audit</code> checks each of those against the source, in a fresh clone, with no build.
   <a href="#safety">Safety</a> · <a href="SECURITY.md">SECURITY.md</a></sub>
 </p>
@@ -69,9 +69,9 @@ The same popover, in German:
 
 ## Safety
 
-Zielzeit is read-only against your broker. It can run exactly five commands (`sc broker overview`,
-`sc broker savings-plans`, `sc broker transactions`, `sc whoami` and `sc installation-code`),
-enumerated in one Swift type with no other code path. There is no route to a trade, to any other
+Zielzeit is read-only against your broker. It can run exactly six commands (`sc broker overview`,
+`sc broker savings-plans`, `sc broker transactions`, `sc broker holdings`, `sc whoami` and
+`sc installation-code`), enumerated in one Swift type with no other code path. There is no route to a trade, to any other
 write command, or to `login`. Nothing leaves your Mac: no analytics, no network call of its own, no
 account of any kind.
 
@@ -86,8 +86,8 @@ make audit          # add AUDIT_ARGS=-v to see every search and its output
 ```
 
 ```
-  ✓  broker write commands        none          the only broker verbs are overview, savings-plans, transactions
-  ✓  broker commands enumerated   5             overview, savings-plans, transactions, whoami, installation-code
+  ✓  broker write commands        none          the only broker verbs are overview, savings-plans, transactions, holdings
+  ✓  broker commands enumerated   6             overview, savings-plans, transactions, holdings, whoami, installation-code
   ✓  networking code              none          no URLSession, Network.framework or socket API in the app
   ✓  shell invocation             none          one Process(), run by absolute path with an argument array
   ✓  credential access            none          no Keychain, no token, no read of the CLI's session
@@ -103,7 +103,7 @@ reassuring.
 
 ### Can Zielzeit trade, sell, or move my money? **No.**
 
-The five commands above are listed in `ScalableClient.Command`
+The six commands above are listed in `ScalableClient.Command`
 ([`Sources/ZielzeitCore/ScalableClient.swift`](Sources/ZielzeitCore/ScalableClient.swift)) and every
 call site passes one of them. There is no code that builds a broker command from anything you type,
 and no shell is involved — the CLI is executed directly through `Process`, not through a shell
@@ -225,6 +225,11 @@ read every fixture here without seeing anyone's holdings.
   6 months, past year. The window is always named, because the sign differs between them.
 - **Caveats that match the numbers.** The disclaimer quotes the rate, contribution and goal actually
   on screen.
+- **Your holdings, measured in time.** Swipe from the projection to a second page that converts each
+  position's gain into how much earlier it brings the goal — the same conversion the whole app is
+  built on, applied one position at a time. Alongside it: the whole portfolio as one bar, what you
+  paid against what the market added, every position's return since purchase against the portfolio's
+  own, and what a 10, 20 or 30% fall would cost you in arrival date.
 
 ## Requirements
 

@@ -122,6 +122,25 @@ enum Theme {
         endPoint: .trailing
     )
 
+    /// The mirror of `barGradient`, for a bar that measures a loss.
+    ///
+    /// Right-to-left so both ramps run outward from the axis they share: a
+    /// left-growing bar with a left-to-right gradient would put its brightest end
+    /// at the tip while its emerald twin puts it at the root.
+    static let lossGradient = LinearGradient(
+        colors: [Color(red: 0.86, green: 0.31, blue: 0.27), Color(red: 0.98, green: 0.51, blue: 0.44)],
+        startPoint: .trailing,
+        endPoint: .leading
+    )
+
+    /// Something is incomplete but nothing is wrong — an unfilled asset class, a
+    /// scenario the portfolio trails its benchmark in.
+    ///
+    /// The same amber the realized-pace scenario uses, and deliberately so: this is
+    /// the app's one "look at this" colour, and a second would compete with it.
+    /// Kept distinct from `.red`, which is reserved for a loss.
+    static let warning = yourPace
+
     /// Fill under the headline curve, tinted to that curve's own hue.
     static func areaGradient(forScenario label: String) -> LinearGradient {
         let hue = color(forScenario: label)

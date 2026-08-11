@@ -42,6 +42,32 @@ cat <<'JSON'
 JSON
 ;;
 
+"broker holdings")
+# Five positions summing to exactly the overview's €42 350.18, with FIFO prices
+# that give the portfolio a +16.3% return since purchase. The All-World line is
+# deliberately the laggard at +3.9%: it is far enough below the portfolio's own
+# return to exercise the holdings page's outlier marking, which nothing else here
+# would reach.
+cat <<'JSON'
+{"ok":true,"command":"broker holdings","data":{"result":{"count":5,"items":[
+ {"isin":"IE00EXAMPLE01","name":"Example World Small Cap (Acc)","security_type":"ETF",
+  "quantity":800,"fifo_price":9.10,"quote_mid_price":10.75,"quote_is_outdated":false,
+  "valuation":8600.00,"valuation_currency":"EUR"},
+ {"isin":"IE00EXAMPLE02","name":"Example Europe (Acc)","security_type":"ETF",
+  "quantity":1000,"fifo_price":10.20,"quote_mid_price":12.40,"quote_is_outdated":false,
+  "valuation":12400.00,"valuation_currency":"EUR"},
+ {"isin":"IE00EXAMPLE03","name":"Example Emerging Markets (Acc)","security_type":"ETF",
+  "quantity":900,"fifo_price":8.40,"quote_mid_price":10.00,"quote_is_outdated":false,
+  "valuation":9000.00,"valuation_currency":"EUR"},
+ {"isin":"IE00EXAMPLE04","name":"Example US Large Cap (Acc)","security_type":"ETF",
+  "quantity":70,"fifo_price":78.00,"quote_mid_price":88.5714,"quote_is_outdated":false,
+  "valuation":6200.00,"valuation_currency":"EUR"},
+ {"isin":"IE00EXAMPLE05","name":"Example All-World (Acc)","security_type":"ETF",
+  "quantity":40,"fifo_price":148.00,"quote_mid_price":153.7545,"quote_is_outdated":false,
+  "valuation":6150.18,"valuation_currency":"EUR"}]}}}
+JSON
+;;
+
 "broker transactions")
 # One page, empty cursor. The CLI signals "no more pages" both ways, and this
 # exercises the empty-string case.

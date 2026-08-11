@@ -13,8 +13,9 @@ enum DevState {
         let message: String
     }
 
-    static let names = ["ready", "slider", "target-year", "caveats", "market-down", "no-goal", "loading",
-                        "failure", "editing", "setup-cli", "setup-access", "setup-requested"]
+    static let names = ["ready", "slider", "target-year", "caveats", "market-down", "holdings",
+                        "no-goal", "loading", "failure", "editing", "setup-cli", "setup-access",
+                        "setup-requested"]
 
     /// Returns the model, or an error message to print.
     static func model(
@@ -70,7 +71,7 @@ enum DevState {
             model.beginEditingGoal()
             return .success(model)
 
-        case "ready", "slider", "target-year", "caveats", "market-down":
+        case "ready", "slider", "target-year", "caveats", "market-down", "holdings":
             guard let goal = goalStore.goal else {
                 return .failure(Failure(message: "No goal set; pass ZIELZEIT_GOAL."))
             }
@@ -102,6 +103,15 @@ enum DevState {
                         .first { (report.move(in: $0)?.direction ?? .flat) == .down }
                         ?? report.availableWindows.last
                 }
+                // The holdings page is fetched here rather than through
+                // `showHoldings()`, which is asynchronous: `--render` screenshots
+                // the popover as soon as it has a model, and would catch the
+                // spinner instead of the page. Every dev state is pinned, so
+                // nothing later overwrites what this puts in place.
+                if name == "holdings" {
+                    model.page = .holdings
+                    model.holdings = holdingsState(for: report, provider: provider)
+                }
                 return .success(model)
             } catch {
                 return .failure(Failure(message: "Error: \(error.localizedDescription)"))
@@ -109,6 +119,28 @@ enum DevState {
 
         default:
             return .failure(Failure(message: "Unknown state \(name.debugDescription). Try: \(names.joined(separator: ", "))"))
+        }
+    }
+
+    /// Reads the holdings page synchronously, for `--render` and `--open`.
+    ///
+    /// Falls back to a failure state carrying the reason rather than to no page at
+    /// all: `--open holdings` against a demo CLI that has not implemented the two
+    /// commands should say so on screen, which is the same thing a real account
+    /// with an old CLI would see.
+    private static func holdingsState(
+        for report: Report,
+        provider: PortfolioProviding
+    ) -> HoldingsState {
+        // Reuses whichever binary the model is already reading, so `sc-demo` serves
+        // this page exactly as it serves the projection behind it.
+        guard let source = provider as? HoldingsProviding else {
+            return .failure("This provider does not read holdings.")
+        }
+        do {
+            return .ready(HoldingsReport(holdings: try source.fetchHoldings(), report: report))
+        } catch {
+            return .failure(error.localizedDescription)
         }
     }
 }

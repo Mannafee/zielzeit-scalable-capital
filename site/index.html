@@ -175,7 +175,7 @@
           <path d="M2.5 12S6 6.25 12 6.25 21.5 12 21.5 12S18 17.75 12 17.75 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
           <circle cx="12" cy="12" r="2.75" stroke="currentColor" stroke-width="1.75"/>
         </svg>
-        <b>Read-only</b><span>Five commands, no writes</span>
+        <b>Read-only</b><span>Six commands, no writes</span>
       </li>
       <li>
         <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -202,7 +202,7 @@
     <p class="eyebrow">Safety</p>
     <h2>Read-only, and checked rather than promised</h2>
     <p class="sub sub--left">
-      Zielzeit can run exactly five commands against your broker, and none of them writes. You do not
+      Zielzeit can run exactly six commands against your broker, and none of them writes. You do not
       have to take that on trust: each promise below is checked against the source code automatically,
       every time anything changes.
     </p>
@@ -234,8 +234,8 @@ cd zielzeit-scalable-capital
 make audit</code></pre>
         <pre class="audit__out"><code><b>Zielzeit audit</b>  — against Sources/, not against the README
 
-  <i>✓</i>  broker write commands        none   the only broker verbs are overview, savings-plans, transactions
-  <i>✓</i>  broker commands enumerated   5      overview, savings-plans, transactions, whoami, installation-code
+  <i>✓</i>  broker write commands        none   the only broker verbs are overview, savings-plans, transactions, holdings
+  <i>✓</i>  broker commands enumerated   6      overview, savings-plans, transactions, holdings, whoami, installation-code
   <i>✓</i>  networking code              none   no URLSession, Network.framework or socket API in the app
   <i>✓</i>  shell invocation             none   one Process(), run by absolute path with an argument array
   <i>✓</i>  credential access            none   no Keychain, no token, no read of the CLI's session
@@ -262,7 +262,7 @@ make audit</code></pre>
           <path d="M3.4 20.6 20.6 3.4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It cannot trade, sell, or move money</h3>
-        <p>The five commands it may run are listed in one place in the code, and there is no route to a sixth. Signing in the way the setup asks also puts the session itself in read-only mode, so the command-line tool blocks every write — whether or not you trust this app.</p>
+        <p>The six commands it may run are listed in one place in the code, and there is no route to a seventh. Signing in the way the setup asks also puts the session itself in read-only mode, so the command-line tool blocks every write — whether or not you trust this app.</p>
       </article>
       <article>
         <!-- A Terminal, not a slashed padlock: the point is that signing in

@@ -28,10 +28,10 @@ public enum ScalableError: LocalizedError, Equatable {
 
 /// Reads portfolio data from the official Scalable CLI.
 ///
-/// Strictly read-only: the only commands this type can run are the five listed
+/// Strictly read-only: the only commands this type can run are the six listed
 /// in `Command`. There is no code path to a trade or any other write command,
 /// and none to `login` either — that is the user's to run.
-public struct ScalableClient: PortfolioProviding, SetupProbing {
+public struct ScalableClient: PortfolioProviding, HoldingsProviding, SetupProbing {
 
     /// The read-only commands Zielzeit uses. Exhaustive by design.
     ///
@@ -44,6 +44,16 @@ public struct ScalableClient: PortfolioProviding, SetupProbing {
         static let savingsPlans = ["broker", "savings-plans"]
         static let installationCode = ["installation-code"]
         static let whoami = ["whoami"]
+
+        /// Per-position detail: the whole of the holdings page.
+        ///
+        /// The sixth member, and the only one the page needs. `broker analytics` was
+        /// here too for a while, for a diversification panel and the broker's stress
+        /// scenarios; both were cut because neither answered the question this app
+        /// asks, so the command they required went with them.
+        ///
+        /// Read-only like the rest: there is no flag on it that writes.
+        static let holdings = ["broker", "holdings"]
 
         /// Cash flow history, used to measure what actually went in over the past
         /// year instead of inferring it from the current plan rate. Read-only, and
@@ -111,6 +121,19 @@ public struct ScalableClient: PortfolioProviding, SetupProbing {
             returns: overview.trailingReturns,
             valuationDate: overview.valuationDate
         )
+    }
+
+    // MARK: - HoldingsProviding
+
+    /// Every position the portfolio holds.
+    ///
+    /// Throwing rather than degrading, unlike `trailingContributions`: this is the
+    /// entire content of the holdings page, so there is nothing to show if it
+    /// fails, and a page that silently rendered an empty portfolio would read as
+    /// "you own nothing" rather than as "this could not be read".
+    public func fetchHoldings() throws -> HoldingsSnapshot {
+        let result = try run(HoldingsResult.self, arguments: Command.holdings)
+        return HoldingsSnapshot(items: result.holdings)
     }
 
     /// Net external money over the trailing year: deposits less withdrawals.
@@ -415,6 +438,62 @@ struct OverviewResult: Decodable {
                 let gain = entry.simpleAbsoluteReturn
             else { return }
             windows[window] = gain
+        }
+    }
+}
+
+struct HoldingsResult: Decodable {
+
+    let items: [Item]?
+
+    struct Item: Decodable {
+        let isin: String
+        let name: String?
+        let securityType: String?
+        let quantity: Double?
+        /// Average purchase price per share, FIFO. The only route to a cost basis:
+        /// nothing else in the payload says what was paid.
+        let fifoPrice: Double?
+        let quoteMidPrice: Double?
+        let quoteIsOutdated: Bool?
+        let valuation: Double?
+
+        enum CodingKeys: String, CodingKey {
+            case isin
+            case name
+            case securityType = "security_type"
+            case quantity
+            case fifoPrice = "fifo_price"
+            case quoteMidPrice = "quote_mid_price"
+            case quoteIsOutdated = "quote_is_outdated"
+            case valuation
+        }
+    }
+
+    /// Positions with enough of a payload to draw.
+    ///
+    /// `isin` is the only required key, because it is the only one whose absence
+    /// leaves nothing to identify a row by. A position missing its valuation or
+    /// its FIFO price is skipped rather than defaulted to zero: a zero would draw
+    /// as a real holding worth nothing and a cost basis of nothing, which reads as
+    /// a 0% return rather than as missing data.
+    var holdings: [Holding] {
+        (items ?? []).compactMap { item in
+            guard
+                let quantity = item.quantity,
+                let averageCost = item.fifoPrice,
+                let valuation = item.valuation
+            else { return nil }
+            return Holding(
+                isin: item.isin,
+                name: item.name ?? item.isin,
+                securityType: item.securityType ?? "",
+                quantity: quantity,
+                averageCost: averageCost,
+                quotePrice: item.quoteMidPrice ?? 0,
+                valuation: valuation,
+                quoteIsOutdated: item.quoteIsOutdated ?? false
+            )
         }
     }
 }
