@@ -425,9 +425,10 @@ h3 { font-size: 20px; font-weight: 600; line-height: 1.32; margin: 0 0 10px; }
   transform: translateX(-50%);
   filter: drop-shadow(0 22px 28px rgba(0,0,0,0.5));
 }
-.feature-card__visual--forecast > img { top: -16%; }
-.feature-card__visual--sliders > img { top: 0; transform: translate(-50%, -35%); }
-.feature-card__visual--holdings > img { top: 7%; }
+/* Keep :not(.language-shot) here too — without it these lose to the base rule above. */
+.feature-card__visual--forecast > img:not(.language-shot) { top: -16%; }
+.feature-card__visual--sliders > img:not(.language-shot) { top: 0; transform: translate(-50%, -35%); }
+.feature-card__visual--holdings > img:not(.language-shot) { top: 7%; }
 .feature-card__copy { padding: 23px 24px 26px; }
 .feature-card__copy span {
   display: block;
