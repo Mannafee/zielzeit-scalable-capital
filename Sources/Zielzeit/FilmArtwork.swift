@@ -30,13 +30,11 @@ enum FilmArtwork {
     private static let popoverTop: CGFloat = barHeight + 16
     private static let popoverRightInset: CGFloat = 88
 
-    /// Plate rows worth knowing, in plate pixels from the plate's own top. Read
-    /// off the capture, not guessed: the year occupies rows 88–157 and the two
-    /// sliders 750–1024, so with `popoverTop` at 60 both are inside 1200 and the
-    /// sweep needs no camera move to be readable. The footer (rows 1176+) falls
-    /// below the bottom edge and stays there — it does on a real screen too.
-    private static let plateYearRow: CGFloat = 88
-    private static let plateSliderRow: CGFloat = 1024
+    // Plate rows worth knowing, in plate pixels from the plate's own top. Read
+    // off the capture, not guessed: the year occupies rows 88–157 and the two
+    // sliders 750–1024, so with `popoverTop` at 60 both are inside 1200 and the
+    // sweep needs no camera move to be readable. The footer (rows 1176+) falls
+    // below the bottom edge and stays there — it does on a real screen too.
 
     // MARK: - Copy
     //
