@@ -23,3 +23,8 @@ docs/superpowers/
 # The long-form engineering log. Local only now: it was committed for a while,
 # so it is still in history, but it is no longer part of the published repo.
 CLAUDE.md
+
+# Assistant configuration — settings, agents, skills. Local only, like CLAUDE.md
+# above: it is tooling for whoever is working on the repo, not part of the
+# product, and CONTRIBUTING carries anything about the workflow worth publishing.
+.claude/
