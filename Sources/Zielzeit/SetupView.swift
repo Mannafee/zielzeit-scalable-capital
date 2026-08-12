@@ -173,7 +173,7 @@ struct SetupView: View {
 }
 
 /// One numbered step, dimmed until its prerequisites are met.
-struct SetupStep<Detail: View>: View {
+private struct SetupStep<Detail: View>: View {
 
     let number: Int
     let title: String
@@ -219,7 +219,7 @@ struct SetupStep<Detail: View>: View {
 ///
 /// Opening Terminal *with the command typed but not run* is deliberate: the user
 /// presses Return themselves, which keeps the login theirs.
-struct CopyableCommand: View {
+private struct CopyableCommand: View {
 
     let command: String
     var opensTerminal: Bool = false
@@ -268,7 +268,7 @@ struct CopyableCommand: View {
 }
 
 /// Opens Terminal with a command typed in, left for the user to run.
-enum Terminal {
+private enum Terminal {
 
     static func open(typing command: String) {
         // Clipboard first, unconditionally. Sending keystrokes needs an

@@ -83,16 +83,6 @@ a:hover { color: var(--accent); }
 /* Everything sits on one 1000px column, nav and stage included. */
 .wrap--wide { width: min(1000px, 100% - calc(var(--pad) * 2)); }
 
-.mono {
-  font: 0.86em/1 var(--mono);
-  background: rgba(14, 158, 107, 0.08);
-  color: var(--accent-d);
-  padding: 2px 5px;
-  margin: 0 -1px;
-  border-radius: 5px;
-  white-space: nowrap;
-}
-
 /* ── Nav ───────────────────────────────────────────────────── */
 .nav {
   position: sticky; top: 0; z-index: 40;
@@ -463,7 +453,6 @@ h3 { font-size: 20px; font-weight: 600; line-height: 1.32; margin: 0 0 10px; }
 
 /* ── Cards ─────────────────────────────────────────────────── */
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.cards--two { gap: 24px; }
 .cards article {
   background: #fff;
   border: 1px solid var(--line);
@@ -484,7 +473,6 @@ h3 { font-size: 20px; font-weight: 600; line-height: 1.32; margin: 0 0 10px; }
    margin was the gap above it. With the commands moved into one disclosure the
    margin would hang below the last line as dead space. */
 .cards p:last-child { margin-bottom: 0; }
-.cards--two p { margin: 16px 0 0; }
 
 pre {
   margin: 0;
@@ -496,7 +484,6 @@ pre {
   overflow-x: auto;
 }
 pre code { font: 12.5px/1.65 var(--mono); color: var(--ink); white-space: pre; }
-.dim { color: var(--muted); }
 
 /* ── Proof, then the terminal behind it ────────────────────────
    The reader this section exists for is nervous about a third-party app reading
@@ -643,28 +630,6 @@ pre code { font: 12.5px/1.65 var(--mono); color: var(--ink); white-space: pre; }
 .build h3 { font-size: 18px; }
 .build p { margin: 0 0 14px; font-size: 15.5px; color: var(--body); }
 
-/* ── Math ──────────────────────────────────────────────────── */
-.aside {
-  margin: 36px 0 24px;
-  padding-left: 18px;
-  border-left: 2px solid var(--accent);
-  font-size: 16px;
-  color: var(--body);
-  max-width: 72ch;
-}
-.caveat {
-  margin: 0;
-  padding: 18px 20px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--body);
-  max-width: 76ch;
-}
-.caveat b { color: var(--ink); font-weight: 600; }
-
 /* ── Close ─────────────────────────────────────────────────── */
 .close { padding: clamp(72px, 9vw, 108px) 0; text-align: center; border-top: 1px solid var(--line); }
 .close img { margin: 0 auto 22px; border-radius: 14px; }
@@ -689,7 +654,7 @@ pre code { font: 12.5px/1.65 var(--mono); color: var(--ink); white-space: pre; }
   .nav__links { display: none; }
   .nav__in { gap: 16px; }
   .nav__brand { margin-right: auto; }
-  .cards, .cards--two, .callouts { grid-template-columns: 1fr; }
+  .cards, .callouts { grid-template-columns: 1fr; }
   .feature-grid { grid-template-columns: 1fr; }
   .specs ul { grid-template-columns: repeat(2, 1fr); }
   .actions .btn { width: 100%; }
@@ -848,11 +813,6 @@ h1 span {
 }
 .sub { color: #aeb9b5; }
 .note { color: var(--muted); }
-.mono {
-  color: #83e9c6;
-  background: rgba(42, 217, 160, 0.09);
-  border: 1px solid rgba(42, 217, 160, 0.10);
-}
 
 .stage {
   border-color: #303835;
@@ -904,8 +864,7 @@ h1 span {
 h2 { letter-spacing: -0.025em; color: #f0f3f1; }
 h3 { color: #edf1ef; }
 .cards article,
-.reveal,
-.caveat {
+.reveal {
   background: linear-gradient(145deg, rgba(40, 49, 46, 0.76), rgba(25, 32, 30, 0.92));
   border-color: var(--line);
   box-shadow: inset 0 1px rgba(255,255,255,0.04), 0 20px 42px -34px rgba(0,0,0,0.92);
@@ -918,9 +877,7 @@ h3 { color: #edf1ef; }
 .cards p,
 .callouts p,
 .steps p,
-.build p,
-.aside,
-.caveat { color: var(--body); }
+.build p { color: var(--body); }
 .ico--card {
   color: #74e8c0;
   background: rgba(42, 217, 160, 0.09);

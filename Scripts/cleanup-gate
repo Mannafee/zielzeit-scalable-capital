@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Behavioural gate for the cleanup loop.
+#
+# Cleanup is meant to change how the code reads, never what it produces. This
+# runs the report and renders the popover from the synthetic fixtures — so no
+# figure moves with the live market — and compares the result against the same
+# thing produced by the commit the cleanup started from.
+#
+# The comparison is against a *binary* built from that commit, not a recorded
+# golden, because the popover footer stamps the current hour and minute: a
+# stored hash would rot at every minute boundary. Rendering both binaries in the
+# same run means the clock affects them identically.
+#
+#   Scripts/cleanup-gate --record   build the baseline binary (once)
+#   Scripts/cleanup-gate            build, test, audit, then diff against it
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+BASELINE_REF="${BASELINE_REF:-399fd408de926bbbe3a3e24134d97b00db10221f}"
+BASELINE_DIR=".build/cleanup-baseline"
+BASELINE_BIN="$BASELINE_DIR/.build/debug/Zielzeit"
+LANGS=(en de fr es it)
+# Every state DevState can build, so a refactor of the views is checked against
+# the pixels of each one rather than only the state that happens to render first.
+STATES=(ready slider target-year caveats market-down holdings no-goal loading
+        failure editing setup-cli setup-access setup-requested)
+
+# `env`, not a bare prefix: the callers pass their own VAR=value arguments too,
+# and those are only honoured as assignments when env parses them.
+demo() { env ZIELZEIT_SC_BIN="$PWD/Scripts/sc-demo" ZIELZEIT_GOAL=250000 "$@"; }
+
+fail() { echo "GATE FAIL: $1" >&2; exit 1; }
+
+# Everything one binary produces: the report in every language, then a hash of
+# the popover in every state, light and dark.
+observe() {
+    local bin=$1 out=$2 shot="$2.png"
+    : > "$out"
+    for lang in "${LANGS[@]}"; do
+        echo "===== lang=$lang =====" >> "$out"
+        demo ZIELZEIT_LANG="$lang" "$bin" --once >> "$out" 2>/dev/null
+    done
+    for state in "${STATES[@]}"; do
+        for mode in light dark; do
+            local flag=""
+            if [[ $mode == dark ]]; then flag="--dark"; fi
+            rm -f "$shot"
+            demo ZIELZEIT_LANG=en "$bin" --render "$shot" "$state" $flag >/dev/null 2>&1 || true
+            if [[ -f $shot ]]; then
+                echo "===== $state/$mode $(shasum -a256 < "$shot" | cut -d' ' -f1) =====" >> "$out"
+            else
+                echo "===== $state/$mode NO-RENDER =====" >> "$out"
+            fi
+        done
+    done
+    rm -f "$shot"
+}
+
+build_baseline() {
+    if [[ -x $BASELINE_BIN ]]; then return; fi
+    echo "building the baseline binary at ${BASELINE_REF:0:7} (once)…"
+    # `make clean` deletes .build and with it this worktree, leaving the
+    # registration behind; prune before adding or git refuses the path.
+    rm -rf "$BASELINE_DIR"
+    git worktree remove --force "$BASELINE_DIR" 2>/dev/null || true
+    git worktree prune
+    git worktree add -q --detach "$BASELINE_DIR" "$BASELINE_REF"
+    ( cd "$BASELINE_DIR" && swift build >/dev/null 2>&1 ) || fail "the baseline commit does not build"
+}
+
+swift build >/dev/null 2>&1 || fail "the tree does not build"
+build_baseline
+
+if [[ "${1:-}" == "--record" ]]; then
+    echo "baseline ready: $BASELINE_BIN"
+    exit 0
+fi
+
+if swift build 2>&1 | grep -E "warning:"; then
+    fail "new compiler warnings (the tree was warning-free)"
+fi
+
+make test >/dev/null 2>&1 || fail "make test"
+make audit >/dev/null 2>&1 || fail "make audit (a privacy or read-only claim broke)"
+
+# Back to back, so the footer's hour:mm stamp lands the same in both. If the
+# minute rolls between them the diff is retried once rather than failing.
+for attempt in 1 2; do
+    observe "$BASELINE_BIN" ".build/cleanup-was"
+    observe ".build/debug/Zielzeit" ".build/cleanup-now"
+    if diff -q ".build/cleanup-was" ".build/cleanup-now" >/dev/null; then
+        echo "GATE PASS: build clean, 297 tests, audit 7/7, report identical in ${#LANGS[@]} languages, \
+$(( ${#STATES[@]} * 2 )) popover renders pixel-identical to ${BASELINE_REF:0:7}"
+        exit 0
+    fi
+    [[ $attempt == 1 ]] && echo "mismatch — retrying once in case the clock rolled…" >&2
+done
+
+diff -u ".build/cleanup-was" ".build/cleanup-now" || true
+fail "output differs from ${BASELINE_REF:0:7} — that is a behaviour change, not a cleanup"

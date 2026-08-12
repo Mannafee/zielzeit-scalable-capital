@@ -213,10 +213,16 @@ final class AppModel {
     var hasGoal: Bool { goalStore.goal != nil }
     var goal: Double? { goalStore.goal }
 
-    /// Whether the data is old enough to be worth re-fetching.
-    var isStale: Bool {
-        lastFetch.map { Date().timeIntervalSince($0) > Self.staleAfter } ?? true
+    /// Whether a fetch made at `date` has aged out of the refresh window.
+    ///
+    /// Never fetched counts as stale, which is what makes the first read happen
+    /// rather than waiting for a window to pass over data that is not there.
+    private static func hasAgedOut(_ date: Date?) -> Bool {
+        date.map { Date().timeIntervalSince($0) > staleAfter } ?? true
     }
+
+    /// Whether the data is old enough to be worth re-fetching.
+    var isStale: Bool { Self.hasAgedOut(lastFetch) }
 
     // MARK: - Holdings page
 
@@ -228,9 +234,7 @@ final class AppModel {
 
     /// Whether the page's figures are old enough to be worth re-reading. Same
     /// window the popover uses for the portfolio itself.
-    var isHoldingsStale: Bool {
-        holdingsFetchedAt.map { Date().timeIntervalSince($0) > Self.staleAfter } ?? true
-    }
+    var isHoldingsStale: Bool { Self.hasAgedOut(holdingsFetchedAt) }
 
     /// Whether the cached page was measured against a goal that has since changed.
     ///

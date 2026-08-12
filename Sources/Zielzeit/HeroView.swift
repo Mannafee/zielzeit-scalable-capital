@@ -205,7 +205,7 @@ struct HeroView: View {
 /// height renders as a floating dot, and early in a long savings plan that is
 /// exactly the case being drawn — so the fill has a floor wide enough to still
 /// read as a bar that has started.
-struct ProgressBar: View {
+private struct ProgressBar: View {
 
     let progress: Double
 
