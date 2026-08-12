@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Behavioural gate for the cleanup loop.
+#
+# Cleanup is meant to change how the code reads, never what it produces. This
+# renders the report from the synthetic fixtures (Scripts/sc-demo, so the output
+# does not move with the live market) across every language, and diffs it
+# against a recorded golden. Any drift is a behaviour change and fails.
+#
+#   Scripts/cleanup-gate --record   write the golden from the current tree
+#   Scripts/cleanup-gate            build, test, audit, then diff against it
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+GOLDEN=".build/cleanup-golden"
+LANGS=(en de fr es it)
+
+render() {
+    local out=$1
+    : > "$out"
+    for lang in "${LANGS[@]}"; do
+        echo "===== lang=$lang =====" >> "$out"
+        ZIELZEIT_SC_BIN="$PWD/Scripts/sc-demo" ZIELZEIT_GOAL=250000 ZIELZEIT_LANG="$lang" \
+            swift run Zielzeit --once 2>/dev/null \
+            | grep -vE "^\[|^Building|^Build of|^Compiling|^Planning" >> "$out"
+    done
+}
+
+# Build once up front so SwiftPM's progress chatter cannot leak into a render.
+swift build >/dev/null 2>&1
+
+if [[ "${1:-}" == "--record" ]]; then
+    mkdir -p "$(dirname "$GOLDEN")"
+    render "$GOLDEN"
+    echo "recorded golden: $GOLDEN ($(wc -l < "$GOLDEN") lines)"
+    exit 0
+fi
+
+fail() { echo "GATE FAIL: $1" >&2; exit 1; }
+
+[[ -f "$GOLDEN" ]] || fail "no golden recorded — run Scripts/cleanup-gate --record"
+
+swift build 2>&1 | grep -E "warning:" && fail "new compiler warnings (the tree was warning-free)"
+
+make test >/dev/null 2>&1 || fail "make test"
+make audit >/dev/null 2>&1 || fail "make audit (a privacy/read-only claim broke)"
+
+render ".build/cleanup-current"
+diff -u "$GOLDEN" ".build/cleanup-current" || fail "report output changed — that is a behaviour change, not a cleanup"
+
+echo "GATE PASS: build clean, 297 tests, audit 7/7, report identical in ${#LANGS[@]} languages"
