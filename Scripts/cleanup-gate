@@ -60,8 +60,11 @@ observe() {
 build_baseline() {
     if [[ -x $BASELINE_BIN ]]; then return; fi
     echo "building the baseline binary at ${BASELINE_REF:0:7} (once)…"
+    # `make clean` deletes .build and with it this worktree, leaving the
+    # registration behind; prune before adding or git refuses the path.
     rm -rf "$BASELINE_DIR"
     git worktree remove --force "$BASELINE_DIR" 2>/dev/null || true
+    git worktree prune
     git worktree add -q --detach "$BASELINE_DIR" "$BASELINE_REF"
     ( cd "$BASELINE_DIR" && swift build >/dev/null 2>&1 ) || fail "the baseline commit does not build"
 }
