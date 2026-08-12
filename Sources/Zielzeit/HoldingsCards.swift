@@ -124,7 +124,7 @@ struct HoldingsHeroCard: View {
 }
 
 /// A quiet echo of the app icon, giving the hero depth without introducing a new motif.
-struct TargetEcho: View {
+private struct TargetEcho: View {
     let tint: Color
 
     var body: some View {
@@ -142,7 +142,7 @@ struct TargetEcho: View {
     }
 }
 
-struct YearChip: View {
+private struct YearChip: View {
     let year: String
     let label: String
     let tint: Color
@@ -167,7 +167,7 @@ struct YearChip: View {
     }
 }
 
-struct HeroBadge: View {
+private struct HeroBadge: View {
     let symbol: String
     let text: String
     let tint: Color
@@ -255,7 +255,7 @@ struct PortfolioOverviewCard: View {
     }
 }
 
-struct MoneyMetric: View {
+private struct MoneyMetric: View {
     let label: String
     let value: String
     var tint: Color = .primary

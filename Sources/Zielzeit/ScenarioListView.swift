@@ -27,7 +27,7 @@ struct ScenarioListView: View {
     }
 }
 
-struct ScenarioRow: View {
+private struct ScenarioRow: View {
 
     let scenario: Scenario
     let year: Int?

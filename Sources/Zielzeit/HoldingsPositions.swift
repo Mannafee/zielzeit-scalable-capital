@@ -55,7 +55,7 @@ struct PositionImpactSection: View {
     }
 }
 
-struct PositionImpactRow: View {
+private struct PositionImpactRow: View {
 
     let item: TimeContribution
     let holdings: HoldingsSnapshot
@@ -141,7 +141,7 @@ struct PositionImpactRow: View {
     }
 }
 
-struct ImpactBar: View {
+private struct ImpactBar: View {
     let weeks: Double?
     let peak: Double?
     let tint: Color
