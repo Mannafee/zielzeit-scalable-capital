@@ -195,7 +195,7 @@ struct PopoverView: View {
                 SetupView(
                     state: setup,
                     onRecheck: { model.refresh() },
-                    onRequestedAccess: { model.markAccessRequested() }
+                    onEnabledAccess: { model.markAccessEnabled() }
                 )
             case .noGoal:
                 EmptyStateView(

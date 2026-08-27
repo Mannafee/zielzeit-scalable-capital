@@ -249,24 +249,6 @@ enum CashTransactionType {
     static let withdrawal = "WITHDRAWAL"
 }
 
-/// `{ok, command, data: T}` — used where the payload is not wrapped in `result`.
-struct DirectEnvelope<T: Decodable>: Decodable {
-    let ok: Bool
-    let error: String?
-    let data: T?
-}
-
-struct InstallationCodePayload: Decodable {
-    /// Grouped for reading aloud, e.g. `DEMO-1234-5678-ABCD`.
-    let displayCode: String?
-    let installationCode: String
-
-    enum CodingKeys: String, CodingKey {
-        case displayCode = "display_code"
-        case installationCode = "installation_code"
-    }
-}
-
 struct WhoAmIResult: Decodable {
     let personOverview: PersonOverview?
 

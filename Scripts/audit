@@ -94,12 +94,15 @@ else
     printf '%s\n' "$unexpected" | sed 's/^/         /'
 fi
 
-# ── 2. The commands are enumerated, and there are six ──────────────────────
+# ── 2. The commands are enumerated, and there are five ─────────────────────
 #
 # Everything Zielzeit can ask the broker is a member of ScalableClient.Command.
-# Five are constant argument arrays; `transactions` is a function because it takes
-# a date and a cursor. Counting them is what makes "exactly six" a fact rather
-# than a sentence: add a seventh and this check reports seven.
+# Four are constant argument arrays; `transactions` is a function because it takes
+# a date and a cursor. Counting them is what makes "exactly five" a fact rather
+# than a sentence: add a sixth and this check reports six.
+#
+# Five, not six, since Scalable CLI 1.0: `installation-code` was retired along
+# with the beta allowlisting flow it fed, so the command went with it.
 #
 # The count alone would not be enough, so two more things are asserted: every
 # call site passes a `Command` member rather than an array of its own, and no
@@ -112,12 +115,12 @@ commands=$((constants + functions))
 searched "awk '/enum Command/,/^    }/' $CLIENT  # count argument-producing members" \
     "$(printf '%s\n' "$enum_body" | grep -E 'static (let [a-zA-Z]+ = \["|func [a-zA-Z]+\()')"
 
-# The six, spelled as the CLI sees them. Each must appear in the enum, so a
-# rename that quietly widened the set cannot pass by keeping the count at six.
+# The five, spelled as the CLI sees them. Each must appear in the enum, so a
+# rename that quietly widened the set cannot pass by keeping the count at five.
 missing=''
 for argv in '"broker", "overview"' '"broker", "savings-plans"' '"broker", "transactions"' \
             '"broker", "holdings"' \
-            '"whoami"' '"installation-code"'; do
+            '"whoami"'; do
     printf '%s\n' "$enum_body" | grep -qF "$argv" || missing="$missing $argv"
 done
 
@@ -129,9 +132,9 @@ call_sites=$(grep -c 'arguments: Command\.' "$CLIENT" 2>/dev/null)
 searched "grep -rn 'arguments: \[\"' --include='*.swift' Sources/  # argv built outside the enum" \
     "$literal_argv"
 
-if [ "$commands" -eq 6 ] && [ -z "$missing" ] && [ -z "$literal_argv" ] && [ "$call_sites" -eq 6 ]; then
-    pass "broker commands enumerated" "6" \
-        "overview, savings-plans, transactions, holdings, whoami, installation-code"
+if [ "$commands" -eq 5 ] && [ -z "$missing" ] && [ -z "$literal_argv" ] && [ "$call_sites" -eq 5 ]; then
+    pass "broker commands enumerated" "5" \
+        "overview, savings-plans, transactions, holdings, whoami"
 elif [ -n "$literal_argv" ]; then
     fail "broker commands enumerated" "$commands" \
         "an argument list is built outside Command, so the enum is no longer exhaustive:"
@@ -140,7 +143,7 @@ elif [ -n "$missing" ]; then
     fail "broker commands enumerated" "$commands" "these are no longer present:$missing"
 else
     fail "broker commands enumerated" "$commands" \
-        "the enum no longer holds exactly six commands — read it, then update this check and the README"
+        "the enum no longer holds exactly five commands — read it, then update this check and the README"
 fi
 
 # ── 3. No networking of its own ─────────────────────────────────────────────
@@ -219,7 +222,7 @@ fi
 #
 # The balance, the holdings and the transactions are fetched, shown and dropped
 # when the app quits. What persists is the goal you typed, the language you
-# picked and whether you have sent the access email. Every key is a `Key` enum
+# picked and whether you have enabled CLI access. Every key is a `Key` enum
 # member, so they can be counted; a fourth would have to be added here too.
 key_defs=$(grep -rn -A3 'private enum Key {' --include='*.swift' Sources/ \
            | grep -oE 'static let [a-zA-Z]+ = "[a-zA-Z]+"')
@@ -228,11 +231,11 @@ searched "grep -rn -A3 'private enum Key {' --include='*.swift' Sources/" "$key_
 if [ "$key_count" -eq 3 ] \
    && printf '%s\n' "$key_defs" | grep -q '"goal"' \
    && printf '%s\n' "$key_defs" | grep -q '"language"' \
-   && printf '%s\n' "$key_defs" | grep -q '"hasRequestedAccess"'; then
-    pass "values stored on disk" "3" "goal, language, hasRequestedAccess — no figures"
+   && printf '%s\n' "$key_defs" | grep -q '"hasEnabledAccess"'; then
+    pass "values stored on disk" "3" "goal, language, hasEnabledAccess — no figures"
 else
     fail "values stored on disk" "$key_count" \
-        "the persisted keys are no longer exactly goal, language and hasRequestedAccess"
+        "the persisted keys are no longer exactly goal, language and hasEnabledAccess"
 fi
 
 # ── 7. One dependency ───────────────────────────────────────────────────────

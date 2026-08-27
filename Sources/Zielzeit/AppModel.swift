@@ -372,11 +372,16 @@ final class AppModel {
         }
     }
 
-    /// Records that the allowlisting email has been sent, and re-probes.
-    func markAccessRequested() {
-        setupStore.hasRequestedAccess = true
-        if case .setup(.notConnected(let code, _)) = state {
-            state = .setup(.notConnected(installationCode: code, hasRequestedAccess: true))
+    /// Records that CLI access has been enabled on the account.
+    ///
+    /// The user's word, because the switch lives on Scalable Capital's web
+    /// platform and no command Zielzeit runs can see it. Ticking the step off
+    /// costs nothing if it is wrong — the sign-in step below it is still there,
+    /// and a login that fails puts the checklist right back.
+    func markAccessEnabled() {
+        setupStore.hasEnabledAccess = true
+        if case .setup(.notConnected) = state {
+            state = .setup(.notConnected(hasEnabledAccess: true))
         }
     }
 

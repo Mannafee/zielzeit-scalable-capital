@@ -90,12 +90,6 @@ cat <<'JSON'
 JSON
 ;;
 
-"installation-code "*|"installation-code")
-cat <<'JSON'
-{"ok":true,"command":"installation-code","data":{"display_code":"DEMO-1234-5678-ABCD","installation_code":"DEMO12345678ABCD"}}
-JSON
-;;
-
 *)
 cat <<'JSON'
 {"ok":true,"command":"whoami","data":{"result":{"personOverview":{"personalDetails":{"firstName":"Alex"}}}}}

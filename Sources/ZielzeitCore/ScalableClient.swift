@@ -28,26 +28,27 @@ public enum ScalableError: LocalizedError, Equatable {
 
 /// Reads portfolio data from the official Scalable CLI.
 ///
-/// Strictly read-only: the only commands this type can run are the six listed
+/// Strictly read-only: the only commands this type can run are the five listed
 /// in `Command`. There is no code path to a trade or any other write command,
 /// and none to `login` either — that is the user's to run.
 public struct ScalableClient: PortfolioProviding, HoldingsProviding, SetupProbing {
 
     /// The read-only commands Zielzeit uses. Exhaustive by design.
     ///
-    /// `installationCode` generates a local proof code and needs no session;
-    /// `whoami` is the cheapest way to tell whether a session works. Neither
-    /// mutates anything, and there is deliberately no `login` here — the CLI's
-    /// guidance is that the user completes login themselves.
+    /// `whoami` is the cheapest way to tell whether a session works, and it
+    /// mutates nothing. There is deliberately no `login` here — the CLI's
+    /// guidance is that the user completes login themselves. `installation-code`
+    /// was a sixth member until Scalable CLI 1.0 retired the command along with
+    /// the beta allowlisting flow it fed; enabling CLI access is now a switch on
+    /// the account, which no command of ours can read or set.
     enum Command {
         static let overview = ["broker", "overview"]
         static let savingsPlans = ["broker", "savings-plans"]
-        static let installationCode = ["installation-code"]
         static let whoami = ["whoami"]
 
         /// Per-position detail: the whole of the holdings page.
         ///
-        /// The sixth member, and the only one the page needs. `broker analytics` was
+        /// The fifth member, and the only one the page needs. `broker analytics` was
         /// here too for a while, for a diversification panel and the broker's stress
         /// scenarios; both were cut because neither answered the question this app
         /// asks, so the command they required went with them.
@@ -186,9 +187,11 @@ public struct ScalableClient: PortfolioProviding, HoldingsProviding, SetupProbin
     /// Works out how far along setup is, without ever attempting a login.
     ///
     /// Note what this deliberately cannot determine: whether a failing session is
-    /// due to missing allowlisting or simply not having logged in. Both surface
-    /// identically, and finding out would mean starting a login on the user's
-    /// behalf. So it reports `notConnected` and lets the UI present both steps.
+    /// due to CLI access not being enabled on the account or simply to nobody
+    /// having logged in. Both surface identically — the switch lives on
+    /// Scalable Capital's web platform, where nothing here can see it — and
+    /// finding out would mean starting a login on the user's behalf. So it
+    /// reports `notConnected` and lets the UI present both steps.
     public func detectSetup() -> SetupState {
         guard isInstalled else { return .cliMissing }
 
@@ -196,23 +199,8 @@ public struct ScalableClient: PortfolioProviding, HoldingsProviding, SetupProbin
             // A working session with no name attached still counts as connected.
             return .connected(accountName: try signedInName())
         } catch {
-            return .notConnected(
-                installationCode: try? installationCode(),
-                hasRequestedAccess: SetupStore().hasRequestedAccess
-            )
+            return .notConnected(hasEnabledAccess: SetupStore().hasEnabledAccess)
         }
-    }
-
-    /// The installation code Scalable Capital needs in order to allowlist this
-    /// machine. Requires no session.
-    public func installationCode() throws -> String {
-        let data = try execute(arguments: Command.installationCode + ["--json"])
-        // Unlike the broker commands, this payload sits directly under `data`
-        // rather than `data.result`.
-        let envelope = try Self.decodeDirect(
-            InstallationCodePayload.self, from: data, command: "installation-code"
-        )
-        return envelope.displayCode ?? envelope.installationCode
     }
 
     /// The signed-in person's first name, or `nil` if the session works but the
@@ -248,25 +236,6 @@ public struct ScalableClient: PortfolioProviding, HoldingsProviding, SetupProbin
             throw ScalableError.unexpectedResponse(command: command)
         }
         return result
-    }
-
-    /// Decodes `{ok, data: T}` — the shape used by commands whose payload is not
-    /// wrapped in a `result` object.
-    static func decodeDirect<T: Decodable>(_ type: T.Type, from data: Data, command: String) throws -> T {
-        let envelope: DirectEnvelope<T>
-        do {
-            envelope = try JSONDecoder().decode(DirectEnvelope<T>.self, from: data)
-        } catch {
-            if Self.looksLikeAuthProblem(data) { throw ScalableError.notLoggedIn }
-            throw ScalableError.unexpectedResponse(command: command)
-        }
-        guard envelope.ok else {
-            throw ScalableError.failed(envelope.error ?? "`sc \(command)` reported a failure")
-        }
-        guard let payload = envelope.data else {
-            throw ScalableError.unexpectedResponse(command: command)
-        }
-        return payload
     }
 
     private static func looksLikeAuthProblem(_ data: Data) -> Bool {

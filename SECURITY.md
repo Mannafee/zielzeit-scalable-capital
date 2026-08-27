@@ -22,17 +22,17 @@ which is what keeps this page from drifting away from the code.
 
 ```
   ✓  broker write commands        none          the only broker verbs are overview, savings-plans, transactions, holdings
-  ✓  broker commands enumerated   6             overview, savings-plans, transactions, holdings, whoami, installation-code
+  ✓  broker commands enumerated   5             overview, savings-plans, transactions, holdings, whoami
   ✓  networking code              none          no URLSession, Network.framework or socket API in the app
   ✓  shell invocation             none          one Process(), run by absolute path with an argument array
   ✓  credential access            none          no Keychain, no token, no read of the CLI's session
-  ✓  values stored on disk        3             goal, language, hasRequestedAccess — no figures
+  ✓  values stored on disk        3             goal, language, hasEnabledAccess — no figures
   ✓  third-party dependencies     1             Sparkle, the updater — nothing else
 ```
 
 ## What it can do
 
-Run six read-only commands through the official
+Run five read-only commands through the official
 [Scalable Capital CLI](https://github.com/ScalableCapital/scalable-cli), which you
 install and sign in to yourself:
 
@@ -43,7 +43,6 @@ install and sign in to yourself:
 | `sc broker transactions` | Deposits and withdrawals over the past year |
 | `sc broker holdings` | Each position: quantity, average cost, valuation |
 | `sc whoami` | Whether the session works, and your first name |
-| `sc installation-code` | The code you email to request beta access |
 
 They are enumerated in `ScalableClient.Command`
 ([`Sources/ZielzeitCore/ScalableClient.swift`](Sources/ZielzeitCore/ScalableClient.swift)),
@@ -66,7 +65,7 @@ array — no shell, so there is no command string a value could break out of.
   shell — plus Sparkle fetching the update feed, which is a GitHub URL in
   `Info.plist` and carries nothing about you.
 - **Keep your figures.** Three values persist, in `com.zielzeit.Zielzeit`: your
-  `goal`, your `language`, and `hasRequestedAccess`. No balance, no holdings, no
+  `goal`, your `language`, and `hasEnabledAccess`. No balance, no holdings, no
   transactions, no name. Read them with `defaults read com.zielzeit.Zielzeit` and
   remove them with `make uninstall`.
 

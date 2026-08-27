@@ -2,16 +2,16 @@ import AppKit
 import SwiftUI
 import ZielzeitCore
 
-/// Onboarding: install the CLI, get allowlisted, sign in.
+/// Onboarding: install the CLI, enable CLI access, sign in.
 ///
 /// Presented as a numbered checklist rather than a wizard, because the middle
-/// step waits on a human at Scalable Capital and the user may come back to this
+/// step happens on a web page in another app and the user may come back to this
 /// hours later. A checklist survives that; a wizard does not.
 struct SetupView: View {
 
     let state: SetupState
     let onRecheck: () -> Void
-    let onRequestedAccess: () -> Void
+    let onEnabledAccess: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -20,12 +20,12 @@ struct SetupView: View {
             switch state {
             case .cliMissing:
                 installStep(number: 1, isDone: false)
-                accessStep(number: 2, code: nil, hasRequested: false, isEnabled: false)
+                accessStep(number: 2, hasEnabled: false, isEnabled: false)
                 signInStep(number: 3, isEnabled: false)
 
-            case .notConnected(let code, let hasRequested):
+            case .notConnected(let hasEnabled):
                 installStep(number: 1, isDone: true)
-                accessStep(number: 2, code: code, hasRequested: hasRequested, isEnabled: true)
+                accessStep(number: 2, hasEnabled: hasEnabled, isEnabled: true)
                 signInStep(number: 3, isEnabled: true)
 
             case .connected:
@@ -61,9 +61,12 @@ struct SetupView: View {
         ) {
             if !isDone {
                 VStack(alignment: .leading, spacing: 6) {
-                    CopyableCommand(command: AccessRequest.installCommand)
+                    CopyableCommand(command: Onboarding.installCommand)
+                    Text(Strings.cliVersionRequirement(Onboarding.minimumCLIVersion))
+                        .font(Theme.caption)
+                        .foregroundStyle(.secondary)
                     Button(Strings.installationInstructions) {
-                        NSWorkspace.shared.open(AccessRequest.repositoryURL)
+                        NSWorkspace.shared.open(Onboarding.repositoryURL)
                     }
                     .buttonStyle(.link)
                     .font(Theme.caption)
@@ -72,65 +75,53 @@ struct SetupView: View {
         }
     }
 
-    private func accessStep(number: Int, code: String?, hasRequested: Bool, isEnabled: Bool) -> some View {
+    private func accessStep(number: Int, hasEnabled: Bool, isEnabled: Bool) -> some View {
         SetupStep(
             number: number,
-            title: hasRequested ? Strings.accessRequested : Strings.requestBetaAccess,
-            isDone: hasRequested,
+            title: hasEnabled ? Strings.accessEnabled : Strings.enableCLIAccess,
+            isDone: hasEnabled,
             isEnabled: isEnabled
         ) {
             if isEnabled {
                 VStack(alignment: .leading, spacing: 7) {
-                    if hasRequested {
-                        Text(Strings.willReplyOnceAllowlisted)
-                            .font(Theme.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        Text(Strings.sendsYourCodeTo(AccessRequest.emailAddress))
-                            .font(Theme.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    Text(hasEnabled
+                         ? Strings.accessEnabledNote
+                         : Strings.enableAccessExplanation(path: Onboarding.accessPath))
+                        .font(Theme.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                    // The sender address is the one mistake that fails silently,
-                    // so it gets a callout rather than a footnote.
-                    HStack(alignment: .top, spacing: 5) {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.orange)
-                        Text(AccessRequest.senderNote)
-                            .font(Theme.caption)
-                            .foregroundStyle(.primary.opacity(0.85))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 5)
-                    .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
+                    // The ordering is the one mistake that fails with an error
+                    // pointing somewhere else, so it gets a callout rather than
+                    // a footnote — and only while the step is still open.
+                    if !hasEnabled {
+                        HStack(alignment: .top, spacing: 5) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.orange)
+                            Text(Onboarding.orderNote)
+                                .font(Theme.caption)
+                                .foregroundStyle(.primary.opacity(0.85))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 5)
+                        .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
 
-                    if let code {
                         HStack(spacing: 6) {
-                            Text(code)
-                                .font(Theme.numeric(12, weight: .semibold))
-                                .textSelection(.enabled)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .background(.quinary, in: RoundedRectangle(cornerRadius: 5))
-
-                            Button(hasRequested ? Strings.sendAgain : Strings.requestAccess) {
-                                if let url = AccessRequest.mailtoURL(installationCode: code) {
-                                    NSWorkspace.shared.open(url)
-                                }
-                                onRequestedAccess()
+                            Button(Strings.openScalable) {
+                                NSWorkspace.shared.open(Onboarding.accessURL)
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(Theme.accent)
                             .controlSize(.small)
+
+                            // Nothing here can read an account setting, so the
+                            // step is ticked off by the only party who knows.
+                            Button(Strings.markAccessEnabled) { onEnabledAccess() }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                         }
-                    } else {
-                        Text(Strings.noInstallationCode)
-                            .font(Theme.caption)
-                            .foregroundStyle(.orange)
                     }
                 }
             }
@@ -150,7 +141,7 @@ struct SetupView: View {
                         .font(Theme.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                    CopyableCommand(command: AccessRequest.loginCommand, opensTerminal: true)
+                    CopyableCommand(command: Onboarding.loginCommand, opensTerminal: true)
                 }
             }
         }

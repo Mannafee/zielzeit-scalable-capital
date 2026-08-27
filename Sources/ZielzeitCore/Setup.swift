@@ -2,11 +2,11 @@ import Foundation
 
 /// How far along the user is in connecting Zielzeit to their portfolio.
 ///
-/// The Scalable CLI is in beta and gated: a client must be allowlisted by
-/// Scalable Capital before it can log in at all. That means onboarding has a
-/// human round-trip in the middle which no amount of software can remove — so
-/// the app's job is to make every step around it a single tap, and to be honest
-/// about the one step that has to wait on someone else.
+/// Since Scalable CLI 1.0 the gate is an account-level switch the user flips
+/// themselves — Profile › Security › Agentic Investing on the Scalable web
+/// platform — rather than a beta allowlisting request with a human at the other
+/// end. The round-trip is gone, but the step is still invisible from here: only
+/// the user knows whether they have flipped it.
 public enum SetupState: Equatable {
 
     /// The CLI is not installed.
@@ -14,11 +14,11 @@ public enum SetupState: Equatable {
 
     /// The CLI is installed but there is no usable session.
     ///
-    /// Whether that is because the installation has not been allowlisted yet or
-    /// simply because nobody has logged in cannot be told apart from outside —
-    /// both look identical until a login is attempted — so this state presents
-    /// both steps and lets the user say which they have done.
-    case notConnected(installationCode: String?, hasRequestedAccess: Bool)
+    /// Whether that is because CLI access has not been enabled on the account
+    /// yet or simply because nobody has logged in cannot be told apart from
+    /// outside — both look identical until a login is attempted — so this state
+    /// presents both steps and lets the user say which they have done.
+    case notConnected(hasEnabledAccess: Bool)
 
     /// A session exists; the portfolio can be read.
     case connected(accountName: String?)
@@ -29,20 +29,22 @@ public enum SetupState: Equatable {
     }
 }
 
-/// Everything needed to ask Scalable Capital for access, and to install and sign
-/// in to the CLI.
+/// Everything needed to enable CLI access, install the CLI, and sign in.
 ///
 /// Deliberately no automation of the login itself: the CLI's own guidance is to
 /// complete login yourself rather than through another tool, and it uses an
 /// OAuth device-code flow that wants a browser. Zielzeit hands the user the exact
 /// command and gets out of the way.
-public enum AccessRequest {
+public enum Onboarding {
 
-    /// Beta allowlisting address, from the CLI's documentation.
-    public static let emailAddress = "cli.beta@scalable.capital"
-
-    /// Subject line the documentation asks for.
-    public static let emailSubject = "Scalable CLI Allowlisting"
+    /// The CLI release this flow describes.
+    ///
+    /// Named because the steps below are version-specific: 1.0 retired
+    /// `sc installation-code` and the beta allowlisting mailbox with it, so a
+    /// user still on 0.6 would be told to flip a switch their CLI does not
+    /// consult. Zielzeit does not run `sc --version` to find out — that would be
+    /// a sixth command for a sentence — so the requirement is stated instead.
+    public static let minimumCLIVersion = "1.0"
 
     /// Official install route. Zielzeit never ships its own copy of the CLI —
     /// the documentation asks users to trust only official artifacts, and a
@@ -57,53 +59,29 @@ public enum AccessRequest {
 
     public static let repositoryURL = URL(string: "https://github.com/ScalableCapital/scalable-cli")!
 
-    /// The one thing that silently sinks a request.
+    /// Scalable Capital's own page for the switch that opens CLI access.
     ///
-    /// Scalable Capital matches the allowlisting request to an account by sender
-    /// address. A `mailto:` link opens whatever the default mail account is,
-    /// which is often not the address the brokerage account uses — and a request
-    /// from an unrecognised sender simply never gets answered, with nothing in
-    /// the app able to reveal why. So the sender has to be called out explicitly
-    /// wherever the request is offered.
-    public static var senderNote: String { Strings.senderNote }
+    /// Their published entry point, not a guessed deep link into the logged-in
+    /// web app: a settings URL invented here would rot the first time they move
+    /// the page, and it would send a signed-out user to a login wall with no
+    /// explanation of what they came for.
+    public static let accessURL = URL(string: "https://de.scalable.capital/en/agentic-investing")!
 
-    /// Body of the allowlisting request.
+    /// Where the switch lives, as a breadcrumb.
     ///
-    /// Deliberately English in every language. This is not app copy: it goes to
-    /// Scalable Capital's beta address, where the documented process is in
-    /// English and a request that reads unexpectedly is a request that waits
-    /// longer. The app's own warning around it is translated; the message itself
-    /// is not.
-    public static func emailBody(installationCode: String) -> String {
-        """
-        Hello,
+    /// The labels stay English in every language, like the CLI's own commands:
+    /// "Agentic Investing" is Scalable Capital's product name, and translating
+    /// the path would send a user hunting for a menu item that does not exist
+    /// under that name. The sentence around it is translated; the path is not.
+    public static let accessPath = "Profile › Security › Agentic Investing"
 
-        I'd like to request allowlisting for the Scalable CLI beta.
-
-        Installation code: \(installationCode)
-
-        Thank you.
-        """
-    }
-
-    /// A `mailto:` URL that opens the user's mail client fully prefilled.
+    /// The one thing that leaves a user stuck with no error to search for.
     ///
-    /// This is the point of the whole flow: instead of reading a README, running
-    /// a command, copying a code and composing the message correctly, the user
-    /// taps once and sends.
-    public static func mailtoURL(installationCode: String) -> URL? {
-        var components = URLComponents()
-        components.scheme = "mailto"
-        components.path = emailAddress
-        components.queryItems = [
-            URLQueryItem(name: "subject", value: emailSubject),
-            URLQueryItem(name: "body", value: emailBody(installationCode: installationCode)),
-        ]
-        // `mailto` bodies must encode "+" or mail clients read it as a space.
-        components.percentEncodedQuery = components.percentEncodedQuery?
-            .replacingOccurrences(of: "+", with: "%2B")
-        return components.url
-    }
+    /// The switch is on the account, not on the machine, and it has to be on
+    /// *before* `sc login` — a login attempted first fails with an
+    /// authentication error that says nothing about a setting on a web page. So
+    /// the ordering is called out wherever the step is offered.
+    public static var orderNote: String { Strings.enableBeforeSigningIn }
 }
 
 /// Detects how far along setup is.
@@ -113,13 +91,13 @@ public protocol SetupProbing {
 
 /// Remembers the parts of setup that cannot be detected.
 ///
-/// Whether the user has already emailed for allowlisting is invisible from
-/// outside, so it is recorded here to stop the app nagging about a step already
-/// done.
+/// Whether the user has flipped the Agentic Investing switch on their account is
+/// invisible from outside, so it is recorded here to stop the app repeating a
+/// step already done.
 public struct SetupStore {
 
     private enum Key {
-        static let requestedAccess = "hasRequestedAccess"
+        static let enabledAccess = "hasEnabledAccess"
     }
 
     private let defaults: UserDefaults
@@ -128,8 +106,8 @@ public struct SetupStore {
         self.defaults = defaults ?? Defaults.shared()
     }
 
-    public var hasRequestedAccess: Bool {
-        get { defaults.bool(forKey: Key.requestedAccess) }
-        nonmutating set { defaults.set(newValue, forKey: Key.requestedAccess) }
+    public var hasEnabledAccess: Bool {
+        get { defaults.bool(forKey: Key.enabledAccess) }
+        nonmutating set { defaults.set(newValue, forKey: Key.enabledAccess) }
     }
 }

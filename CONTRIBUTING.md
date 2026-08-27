@@ -115,7 +115,7 @@ make open STATE=market-down
 ```
 
 `STATE` is one of: `ready`, `slider`, `target-year`, `caveats`, `market-down`, `no-goal`, `loading`,
-`failure`, `editing`, `setup-cli`, `setup-access`, `setup-requested`.
+`failure`, `editing`, `setup-cli`, `setup-access`, `setup-enabled`.
 
 `market-down` exists because which windows are negative changes daily, and the losing colour is
 otherwise unreviewable on demand.
@@ -152,22 +152,21 @@ running against it exercises the filtering that keeps a custody migration from b
 year's worth of deposits.
 
 To walk the real onboarding while you still have a working session, point at a stub that fails
-everything except `installation-code`, which needs no session and can be forwarded to the real CLI:
+every command the way an unauthenticated CLI does. Since Scalable CLI 1.0 there is nothing to
+forward to the real one — setup reads no command that works without a session:
 
 ```sh
 cat > .build/sc-no-session <<'EOF'
 #!/bin/sh
-case "$1" in
-  installation-code) exec /opt/homebrew/bin/sc "$@" ;;
-  *) echo "error: no saved session, please run sc login" >&2; exit 1 ;;
-esac
+echo "error: no saved session, please run sc login" >&2
+exit 1
 EOF
 chmod +x .build/sc-no-session
 ZIELZEIT_SC_BIN=$PWD/.build/sc-no-session ./Zielzeit.app/Contents/MacOS/Zielzeit --open &
 ```
 
 Afterwards, `make run` restores the real app, and clear the test residue with
-`defaults delete com.zielzeit.Zielzeit hasRequestedAccess`.
+`defaults delete com.zielzeit.Zielzeit hasEnabledAccess`.
 
 ## Hard constraints
 
@@ -181,7 +180,7 @@ These are not style preferences. A PR that breaks one will not be merged.
 4. **Invoke `sc` by absolute path.** An app launched from Finder inherits a minimal `PATH` without
    `/opt/homebrew/bin`, so a bare `sc` works in your shell and fails only in the built app.
 5. **Never commit real portfolio figures**, in screenshots, fixtures or test data. A fixture copied
-   from the live CLI must have its amounts, installation codes and ISINs replaced first.
+   from the live CLI must have its amounts and ISINs replaced first.
 
 ## Changing the math
 
@@ -209,7 +208,7 @@ you can plausibly break without noticing locally:
 |---|---|
 | **Tests** | `swift build --build-tests` and `swift test` on `macos-15` |
 | **App bundle and harnesses** | `make app` (packaging: a missing `Info.plist` key, an icon that stops generating), a full `--once` run against `Scripts/sc-demo`, the documented `--once` exit codes, and both render harnesses |
-| **No real account data** | Scans the tree for anything shaped like a real Scalable installation code or a real ISIN |
+| **No real account data** | Scans the tree for anything shaped like a real ISIN |
 
 The end-to-end job is the one worth understanding: it runs the whole report against the synthetic CLI,
 so a decoder change that compiles and passes the unit tests but falls over on a complete payload gets

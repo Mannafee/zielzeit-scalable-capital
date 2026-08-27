@@ -45,30 +45,29 @@ enum TextMode {
         case .cliMissing:
             lines += [
                 Strings.stepInstallCLI,
-                "     \(AccessRequest.installCommand)",
-                "   \(AccessRequest.repositoryURL.absoluteString)",
+                "     \(Onboarding.installCommand)",
+                "   \(Strings.cliVersionRequirement(Onboarding.minimumCLIVersion))  \(Onboarding.repositoryURL.absoluteString)",
                 "",
-                Strings.stepRequestAllowlisting,
-                "     \(AccessRequest.emailAddress)   \(Strings.subjectNote(AccessRequest.emailSubject))",
-                "   \(AccessRequest.senderNote)",
+                Strings.stepEnableAccess,
+                "     \(Onboarding.accessPath)",
+                "   \(Onboarding.accessURL.absoluteString)",
+                "   \(Onboarding.orderNote)",
                 "",
                 Strings.stepSignIn,
-                "     \(AccessRequest.loginCommand)",
+                "     \(Onboarding.loginCommand)",
             ]
 
-        case .notConnected(let code, let hasRequested):
-            if let code {
-                lines += [Strings.yourInstallationCode(code), ""]
-            }
-            if !hasRequested {
+        case .notConnected(let hasEnabled):
+            if !hasEnabled {
                 lines += [
-                    Strings.ifNotAllowlistedEmail,
-                    "  \(AccessRequest.emailAddress)   \(Strings.subjectNote(AccessRequest.emailSubject))",
-                    "  \(AccessRequest.senderNote)",
+                    Strings.ifNotEnabledYet,
+                    "  \(Onboarding.accessPath)",
+                    "  \(Onboarding.accessURL.absoluteString)",
+                    "  \(Onboarding.orderNote)",
                     "",
                 ]
             }
-            lines += [Strings.thenSignIn, "  \(AccessRequest.loginCommand)"]
+            lines += [Strings.thenSignIn, "  \(Onboarding.loginCommand)"]
 
         case .connected:
             break

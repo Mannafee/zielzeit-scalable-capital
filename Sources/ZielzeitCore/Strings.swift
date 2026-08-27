@@ -192,13 +192,13 @@ public enum Strings {
 
     // MARK: - Setup
 
-    public static var senderNote: String {
+    public static var enableBeforeSigningIn: String {
         pick(
-            "Send it from the email address registered with Scalable Capital — check the From field.",
-            "Sende sie von der bei Scalable Capital registrierten E-Mail-Adresse — prüfe das Von-Feld.",
-            "Envoyez-le depuis l’adresse e-mail enregistrée auprès de Scalable Capital — vérifiez le champ Expéditeur.",
-            "Envíalo desde el correo registrado en Scalable Capital; comprueba el campo De.",
-            "Invialo dall’indirizzo e-mail registrato su Scalable Capital; controlla il campo Da."
+            "Turn it on before you sign in — a login started first fails with an authentication error that never mentions this switch.",
+            "Aktiviere ihn vor der Anmeldung — eine vorher gestartete Anmeldung scheitert mit einem Authentifizierungsfehler, der diesen Schalter nie erwähnt.",
+            "Activez-le avant de vous connecter — une connexion lancée avant échoue avec une erreur d’authentification qui ne mentionne jamais ce réglage.",
+            "Actívalo antes de iniciar sesión: al revés, el inicio de sesión falla con un error de autenticación que nunca menciona este ajuste.",
+            "Attivalo prima di accedere: al contrario, l’accesso fallisce con un errore di autenticazione che non menziona mai questa impostazione."
         )
     }
 
@@ -361,40 +361,45 @@ public enum Strings {
     public static var almostThere: String { pick("Almost there", "Fast geschafft", "Vous y êtes presque", "Ya casi está", "Ci sei quasi") }
     public static var setupIntro: String {
         pick(
-            "Zielzeit reads your portfolio through Scalable Capital's official CLI, which is in beta — so it has to allowlist your Mac first.",
-            "Zielzeit liest dein Portfolio über das offizielle CLI von Scalable Capital. Es ist in der Beta — dein Mac muss dafür erst freigeschaltet werden.",
-            "Zielzeit lit votre portefeuille via la CLI officielle de Scalable Capital, actuellement en bêta — votre Mac doit d’abord être autorisé.",
-            "Zielzeit lee tu cartera mediante la CLI oficial de Scalable Capital, que está en beta; primero deben autorizar tu Mac.",
-            "Zielzeit legge il portafoglio tramite la CLI ufficiale di Scalable Capital, ancora in beta: prima il tuo Mac deve essere autorizzato."
+            "Zielzeit reads your portfolio through Scalable Capital's official CLI. Enable CLI access on your account once, then sign in.",
+            "Zielzeit liest dein Portfolio über das offizielle CLI von Scalable Capital. Aktiviere einmalig den CLI-Zugriff in deinem Konto und melde dich dann an.",
+            "Zielzeit lit votre portefeuille via la CLI officielle de Scalable Capital. Activez une fois l’accès CLI sur votre compte, puis connectez-vous.",
+            "Zielzeit lee tu cartera mediante la CLI oficial de Scalable Capital. Activa una vez el acceso de la CLI en tu cuenta y después inicia sesión.",
+            "Zielzeit legge il portafoglio tramite la CLI ufficiale di Scalable Capital. Attiva una volta l’accesso CLI sul tuo account, poi accedi."
         )
     }
     public static var installTheCLI: String { pick("Install the Scalable CLI", "Scalable CLI installieren", "Installer la CLI Scalable", "Instala la CLI de Scalable", "Installa la CLI di Scalable") }
+    /// The version matters: the step below it describes 1.0's setup, not the
+    /// beta's, and an older CLI would send the user looking for a switch it
+    /// never consults.
+    public static func cliVersionRequirement(_ version: String) -> String {
+        pick("Version \(version) or newer.", "Version \(version) oder neuer.", "Version \(version) ou plus récente.", "Versión \(version) o posterior.", "Versione \(version) o successiva.")
+    }
     public static var installationInstructions: String {
         pick("Installation instructions", "Installationsanleitung", "Instructions d’installation", "Instrucciones de instalación", "Istruzioni di installazione")
     }
-    public static var accessRequested: String { pick("Access requested", "Zugang angefragt", "Accès demandé", "Acceso solicitado", "Accesso richiesto") }
-    public static var requestBetaAccess: String { pick("Request beta access", "Beta-Zugang anfragen", "Demander l’accès à la bêta", "Solicitar acceso beta", "Richiedi accesso alla beta") }
-    public static var willReplyOnceAllowlisted: String {
+    public static var enableCLIAccess: String { pick("Enable CLI access", "CLI-Zugriff aktivieren", "Activer l’accès CLI", "Activar el acceso de la CLI", "Attiva l’accesso CLI") }
+    public static var accessEnabled: String { pick("CLI access enabled", "CLI-Zugriff aktiviert", "Accès CLI activé", "Acceso de la CLI activado", "Accesso CLI attivato") }
+    /// The path is Scalable Capital's own, and stays in their words — see
+    /// `Onboarding.accessPath`.
+    public static func enableAccessExplanation(path: String) -> String {
         pick(
-            "Scalable Capital will reply once your Mac is allowlisted. Then sign in below.",
-            "Scalable Capital meldet sich, sobald dein Mac freigeschaltet ist. Danach unten anmelden.",
-            "Scalable Capital répondra lorsque votre Mac sera autorisé. Connectez-vous ensuite ci-dessous.",
-            "Scalable Capital responderá cuando autorice tu Mac. Después inicia sesión abajo.",
-            "Scalable Capital risponderà quando il tuo Mac sarà autorizzato. Poi accedi qui sotto."
+            "Turn on Agentic Investing in your Scalable account: \(path).",
+            "Aktiviere Agentic Investing in deinem Scalable-Konto: \(path).",
+            "Activez Agentic Investing dans votre compte Scalable : \(path).",
+            "Activa Agentic Investing en tu cuenta de Scalable: \(path).",
+            "Attiva Agentic Investing nel tuo account Scalable: \(path)."
         )
     }
-    public static func sendsYourCodeTo(_ address: String) -> String {
-        pick("Sends your installation code to \(address).", "Sendet deinen Installationscode an \(address).", "Envoie votre code d’installation à \(address).", "Envía tu código de instalación a \(address).", "Invia il codice di installazione a \(address).")
-    }
-    public static var sendAgain: String { pick("Send again", "Erneut senden", "Renvoyer", "Enviar de nuevo", "Invia di nuovo") }
-    public static var requestAccess: String { pick("Request access", "Zugang anfragen", "Demander l’accès", "Solicitar acceso", "Richiedi accesso") }
-    public static var noInstallationCode: String {
+    public static var openScalable: String { pick("Open Scalable", "Scalable öffnen", "Ouvrir Scalable", "Abrir Scalable", "Apri Scalable") }
+    public static var markAccessEnabled: String { pick("I've enabled it", "Ist aktiviert", "C’est activé", "Ya está activado", "L’ho attivato") }
+    public static var accessEnabledNote: String {
         pick(
-            "Couldn't read an installation code from the CLI.",
-            "Das CLI hat keinen Installationscode geliefert.",
-            "Impossible de lire un code d’installation depuis la CLI.",
-            "No se pudo leer un código de instalación de la CLI.",
-            "Impossibile leggere un codice di installazione dalla CLI."
+            "Zielzeit can't see this switch, so it takes your word for it. Sign in below.",
+            "Zielzeit kann diesen Schalter nicht sehen und verlässt sich auf deine Angabe. Melde dich unten an.",
+            "Zielzeit ne peut pas voir ce réglage et vous croit sur parole. Connectez-vous ci-dessous.",
+            "Zielzeit no puede ver este ajuste, así que confía en ti. Inicia sesión abajo.",
+            "Zielzeit non può vedere questa impostazione e si fida di te. Accedi qui sotto."
         )
     }
     public static var signIn: String { pick("Sign in", "Anmelden", "Se connecter", "Iniciar sesión", "Accedi") }
@@ -435,31 +440,25 @@ public enum Strings {
         )
     }
     public static var stepInstallCLI: String {
-        pick("1. Install the Scalable CLI (it's in beta):", "1. Scalable CLI installieren (Beta):", "1. Installez la CLI Scalable (en bêta) :", "1. Instala la CLI de Scalable (está en beta):", "1. Installa la CLI di Scalable (in beta):")
+        pick("1. Install the Scalable CLI:", "1. Scalable CLI installieren:", "1. Installez la CLI Scalable :", "1. Instala la CLI de Scalable:", "1. Installa la CLI di Scalable:")
     }
-    public static var stepRequestAllowlisting: String {
+    public static var stepEnableAccess: String {
         pick(
-            "2. Request allowlisting — run `sc installation-code`, then email the code to",
-            "2. Freischaltung anfragen — führe `sc installation-code` aus und maile den Code an",
-            "2. Demandez l’autorisation — exécutez `sc installation-code`, puis envoyez le code à",
-            "2. Solicita autorización: ejecuta `sc installation-code` y envía el código a",
-            "2. Richiedi l’autorizzazione: esegui `sc installation-code`, poi invia il codice a"
+            "2. Enable CLI access on your Scalable account:",
+            "2. CLI-Zugriff in deinem Scalable-Konto aktivieren:",
+            "2. Activez l’accès CLI sur votre compte Scalable :",
+            "2. Activa el acceso de la CLI en tu cuenta de Scalable:",
+            "2. Attiva l’accesso CLI sul tuo account Scalable:"
         )
     }
     public static var stepSignIn: String { pick("3. Sign in:", "3. Anmelden:", "3. Connectez-vous :", "3. Inicia sesión:", "3. Accedi:") }
-    public static func subjectNote(_ subject: String) -> String {
-        pick("(subject: \(subject))", "(Betreff: \(subject))", "(objet : \(subject))", "(asunto: \(subject))", "(oggetto: \(subject))")
-    }
-    public static func yourInstallationCode(_ code: String) -> String {
-        pick("Your installation code: \(code)", "Dein Installationscode: \(code)", "Votre code d’installation : \(code)", "Tu código de instalación: \(code)", "Il tuo codice di installazione: \(code)")
-    }
-    public static var ifNotAllowlistedEmail: String {
+    public static var ifNotEnabledYet: String {
         pick(
-            "If you haven't been allowlisted yet, email the code to",
-            "Falls du noch nicht freigeschaltet bist, maile den Code an",
-            "Si vous n’êtes pas encore autorisé, envoyez le code à",
-            "Si aún no tienes autorización, envía el código a",
-            "Se non sei ancora autorizzato, invia il codice a"
+            "If you haven't enabled CLI access yet:",
+            "Falls du den CLI-Zugriff noch nicht aktiviert hast:",
+            "Si vous n’avez pas encore activé l’accès CLI :",
+            "Si aún no has activado el acceso de la CLI:",
+            "Se non hai ancora attivato l’accesso CLI:"
         )
     }
     public static var thenSignIn: String { pick("Then sign in:", "Dann anmelden:", "Connectez-vous ensuite :", "Después inicia sesión:", "Poi accedi:") }

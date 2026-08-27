@@ -14,7 +14,7 @@ UNIVERSAL := .build/apple/Products/Release/Zielzeit
 
 # Which state the UI harness targets: ready | slider | target-year | caveats |
 # market-down | holdings | no-goal | loading | failure | editing | setup-cli |
-# setup-access | setup-requested
+# setup-access | setup-enabled
 STATE ?= ready
 
 .DEFAULT_GOAL := help
@@ -75,10 +75,14 @@ shots: ## Regenerate the README screenshots in docs/ from synthetic data
 		.build/debug/Zielzeit --shot docs/popover.png ready --dark --scale 3
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
 		.build/debug/Zielzeit --shot docs/slider.png slider --dark --scale 3
+	@# 4×, not 3×, for the setup shots: the README shows them at 344px, so 3×
+	@# lands at 1.5 device pixels per CSS pixel on a Retina screen and the text
+	@# reads soft. 4× is a whole multiple of 344, which is what Scripts/check-doc-widths
+	@# asks for.
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=en \
-		.build/debug/Zielzeit --shot docs/setup.png setup-access --dark --scale 3
-	@# The same two states in German. Same stub, same goal, same scale, so the
-	@# pair differs only in language.
+		.build/debug/Zielzeit --shot docs/setup.png setup-access --dark --scale 4
+	@# The same two states in German. Same stub, same goal, and each at the scale
+	@# its English twin uses, so a pair differs only in language.
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=de \
 		.build/debug/Zielzeit --shot docs/popover-de.png ready --dark --scale 3
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=fr \
@@ -88,7 +92,7 @@ shots: ## Regenerate the README screenshots in docs/ from synthetic data
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=it \
 		.build/debug/Zielzeit --shot docs/popover-it.png ready --dark --scale 3
 	@ZIELZEIT_SC_BIN=$(PWD)/Scripts/sc-demo ZIELZEIT_GOAL=250000 ZIELZEIT_LANG=de \
-		.build/debug/Zielzeit --shot docs/setup-de.png setup-access --dark --scale 3
+		.build/debug/Zielzeit --shot docs/setup-de.png setup-access --dark --scale 4
 	@# The holdings page uses --render, not --shot, and that is the one deliberate
 	@# difference in here: --shot captures a real window, so it would show the page
 	@# clipped to the popover's height with the rest behind a scroll. The README wants
