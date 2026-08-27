@@ -14,7 +14,7 @@ UNIVERSAL := .build/apple/Products/Release/Zielzeit
 
 # Which state the UI harness targets: ready | slider | target-year | caveats |
 # market-down | holdings | no-goal | loading | failure | editing | setup-cli |
-# setup-access | setup-requested
+# setup-access | setup-enabled
 STATE ?= ready
 
 .DEFAULT_GOAL := help

@@ -24,7 +24,7 @@ LANGS=(en de fr es it)
 # Every state DevState can build, so a refactor of the views is checked against
 # the pixels of each one rather than only the state that happens to render first.
 STATES=(ready slider target-year caveats market-down holdings no-goal loading
-        failure editing setup-cli setup-access setup-requested)
+        failure editing setup-cli setup-access setup-enabled)
 
 # `env`, not a bare prefix: the callers pass their own VAR=value arguments too,
 # and those are only honoured as assignments when env parses them.

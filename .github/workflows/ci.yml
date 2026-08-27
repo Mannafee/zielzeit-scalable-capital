@@ -77,20 +77,11 @@ jobs:
       - uses: actions/checkout@v5
 
       # Fixtures are shaped from real CLI responses, so it is genuinely easy to
-      # paste a live one in. These are the shapes that would identify an account:
-      # a real Scalable installation code, or an ISIN that is not the placeholder.
+      # paste a live one in. This is the shape that would identify an account:
+      # an ISIN that is not the placeholder.
       - name: Scan for account identifiers
         run: |
           status=0
-
-          # Installation codes are four groups of four. Placeholders are allowed;
-          # add to this list rather than loosening the pattern.
-          if grep -rInE '\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b' \
-               --include='*.swift' --include='*.md' --include='sc-demo' . \
-               | grep -vE 'DEMO-1234-5678-ABCD|AAAA-BBBB-CCCC-DDDD'; then
-            echo "::error::what looks like a real installation code is committed"
-            status=1
-          fi
 
           # Real ISINs are two letters, ten alphanumerics. Placeholders are
           # IE00EXAMPLE0n, which does not match the strict pattern below.

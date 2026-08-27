@@ -15,7 +15,7 @@ enum DevState {
 
     static let names = ["ready", "slider", "target-year", "caveats", "market-down", "holdings",
                         "no-goal", "loading", "failure", "editing", "setup-cli", "setup-access",
-                        "setup-requested"]
+                        "setup-enabled"]
 
     /// Returns the model, or an error message to print.
     static func model(
@@ -47,13 +47,13 @@ enum DevState {
         case "setup-access":
             return .success(AppModel(
                 provider: provider, goalStore: goalStore,
-                state: .setup(.notConnected(installationCode: "DEMO-1234-5678-ABCD", hasRequestedAccess: false))
+                state: .setup(.notConnected(hasEnabledAccess: false))
             ))
 
-        case "setup-requested":
+        case "setup-enabled":
             return .success(AppModel(
                 provider: provider, goalStore: goalStore,
-                state: .setup(.notConnected(installationCode: "DEMO-1234-5678-ABCD", hasRequestedAccess: true))
+                state: .setup(.notConnected(hasEnabledAccess: true))
             ))
 
         case "loading":

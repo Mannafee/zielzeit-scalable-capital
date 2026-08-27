@@ -137,7 +137,7 @@
           <path d="M2.5 12S6 6.25 12 6.25 21.5 12 21.5 12S18 17.75 12 17.75 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
           <circle cx="12" cy="12" r="2.75" stroke="currentColor" stroke-width="1.75"/>
         </svg>
-        <b>Read-only</b><span>Six commands, no writes</span>
+        <b>Read-only</b><span>Five commands, no writes</span>
       </li>
       <li>
         <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -163,7 +163,7 @@
   <div class="wrap">
     <p class="eyebrow">Safety</p>
     <h2>Read-only, and checked rather than promised</h2>
-    <p class="sub sub--left">Six read commands. Zero write commands. Checked automatically on every change.</p>
+    <p class="sub sub--left">Five read commands. Zero write commands. Checked automatically on every change.</p>
 
     <!-- The proof, in one line a non-developer can read, with the terminal output
          one click behind it. An earlier draft opened this section with the raw
@@ -193,11 +193,11 @@ make audit</code></pre>
         <pre class="audit__out"><code><b>Zielzeit audit</b>  — against Sources/, not against the README
 
   <i>✓</i>  broker write commands        none   the only broker verbs are overview, savings-plans, transactions, holdings
-  <i>✓</i>  broker commands enumerated   6      overview, savings-plans, transactions, holdings, whoami, installation-code
+  <i>✓</i>  broker commands enumerated   5      overview, savings-plans, transactions, holdings, whoami
   <i>✓</i>  networking code              none   no URLSession, Network.framework or socket API in the app
   <i>✓</i>  shell invocation             none   one Process(), run by absolute path with an argument array
   <i>✓</i>  credential access            none   no Keychain, no token, no read of the CLI's session
-  <i>✓</i>  values stored on disk        3      goal, language, hasRequestedAccess — no figures
+  <i>✓</i>  values stored on disk        3      goal, language, hasEnabledAccess — no figures
   <i>✓</i>  third-party dependencies     1      Sparkle, the updater — nothing else
 
 <b>7 of 7 checks passed.</b>  Re-run with -v for every search and its output.</code></pre>
@@ -220,7 +220,7 @@ make audit</code></pre>
           <path d="M3.4 20.6 20.6 3.4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It cannot trade, sell, or move money</h3>
-        <p>Six allowlisted read commands, backed by a read-only CLI session.</p>
+        <p>Five allowlisted read commands, backed by a read-only CLI session.</p>
       </article>
       <article>
         <!-- A Terminal, not a slashed padlock: the point is that signing in
@@ -248,7 +248,7 @@ make audit</code></pre>
           <path d="M7.5 9.25h9M7.5 12.75h9M7.5 16.25h5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         </svg>
         <h3>It keeps three values, and no figures</h3>
-        <p>Goal, language, and beta-request status. Portfolio data is forgotten on quit.</p>
+        <p>Goal, language, and whether CLI access is enabled. Portfolio data is forgotten on quit.</p>
       </article>
     </div>
 
@@ -334,8 +334,8 @@ make audit</code></pre>
 <section class="band" id="setup">
   <div class="wrap">
     <p class="eyebrow">Setup</p>
-    <h2>Three steps, one of them an email</h2>
-    <p class="sub sub--left">The app walks you through the CLI beta setup on first launch.</p>
+    <h2>Three steps, one of them a switch</h2>
+    <p class="sub sub--left">The app walks you through the CLI setup on first launch.</p>
 
     <div class="setup">
       <ol class="steps">
@@ -348,9 +348,9 @@ make audit</code></pre>
           </div>
         </li>
         <li>
-          <h3>Request beta access</h3>
-          <p>A prefilled email includes your installation code.</p>
-          <p class="warn"><b>Use the email registered with Scalable Capital.</b></p>
+          <h3>Enable CLI access</h3>
+          <p>Turn on Agentic Investing under Profile › Security in your Scalable account.</p>
+          <p class="warn"><b>Do this before you sign in.</b></p>
         </li>
         <li>
           <h3>Sign in yourself</h3>
@@ -363,7 +363,7 @@ make audit</code></pre>
       </ol>
 
       <figure class="shot">
-        <img src="img/setup.png" width="344" alt="Zielzeit's onboarding checklist: install the CLI, request beta access, sign in, each with a copy button" loading="lazy">
+        <img src="img/setup.png" width="344" alt="Zielzeit's onboarding checklist: install the CLI, enable CLI access, sign in, each with a copy button" loading="lazy">
         <figcaption>The same three steps, inside the app.</figcaption>
       </figure>
     </div>

@@ -43,7 +43,7 @@
 </p>
 
 > [!IMPORTANT]
-> Zielzeit accesses a brokerage account, so the trust boundary is explicit: **six read-only
+> Zielzeit accesses a brokerage account, so the trust boundary is explicit: **five read-only
 > commands, no credentials, and no networking code of its own.** Run `make audit` to check those
 > claims against the source. See [Safety](#safety) and [SECURITY.md](SECURITY.md).
 
@@ -114,9 +114,9 @@ the selected language.
 
 ## Safety
 
-Zielzeit is read-only against your broker. It can run exactly six commands (`sc broker overview`,
-`sc broker savings-plans`, `sc broker transactions`, `sc broker holdings`, `sc whoami` and
-`sc installation-code`), enumerated in one Swift type with no other code path. There is no route to
+Zielzeit is read-only against your broker. It can run exactly five commands (`sc broker overview`,
+`sc broker savings-plans`, `sc broker transactions`, `sc broker holdings` and `sc whoami`),
+enumerated in one Swift type with no other code path. There is no route to
 a trade, another write command, or `login`. Nothing leaves your Mac: no analytics, no network call
 of its own, and no account of any kind.
 
@@ -132,11 +132,11 @@ make audit          # add AUDIT_ARGS=-v to see every search and its output
 
 ```
   ✓  broker write commands        none          the only broker verbs are overview, savings-plans, transactions, holdings
-  ✓  broker commands enumerated   6             overview, savings-plans, transactions, holdings, whoami, installation-code
+  ✓  broker commands enumerated   5             overview, savings-plans, transactions, holdings, whoami
   ✓  networking code              none          no URLSession, Network.framework or socket API in the app
   ✓  shell invocation             none          one Process(), run by absolute path with an argument array
   ✓  credential access            none          no Keychain, no token, no read of the CLI's session
-  ✓  values stored on disk        3             goal, language, hasRequestedAccess — no figures
+  ✓  values stored on disk        3             goal, language, hasEnabledAccess — no figures
   ✓  third-party dependencies     1             Sparkle, the updater — nothing else
 ```
 
@@ -149,7 +149,7 @@ reassuring.
 <details>
 <summary><b>Can Zielzeit trade, sell, or move my money? No.</b></summary>
 
-The six commands above are listed in `ScalableClient.Command`
+The five commands above are listed in `ScalableClient.Command`
 ([`Sources/ZielzeitCore/ScalableClient.swift`](Sources/ZielzeitCore/ScalableClient.swift)) and every
 call site passes one of them. There is no code that builds a broker command from anything you type,
 and no shell is involved — the CLI is executed directly through `Process`, not through a shell
@@ -203,7 +203,7 @@ Three values in its own preferences domain, `com.zielzeit.Zielzeit`:
 |---|---|
 | `goal` | Your goal amount, a number |
 | `language` | `en`, `de`, `fr`, `es`, `it`, or absent for "follow the Mac" |
-| `hasRequestedAccess` | Whether you have emailed for beta access, a true/false |
+| `hasEnabledAccess` | Whether you have enabled CLI access on your Scalable account, a true/false |
 
 No balance, no holdings, no transactions, no name. Figures are fetched, shown, and forgotten when
 the app quits. Everything it keeps can be read — and deleted — with `defaults`:
@@ -255,8 +255,8 @@ script. It reads `Sources/` only — a check that also matched the README would 
 the promise instead of the code.
 
 The test suite runs against payloads *shaped* from real CLI responses and never real ones: a CI job
-fails the build if anything resembling a real balance, contribution, installation code or ISIN
-appears in the repository. That check protects contributors' accounts, and it is also why you can
+fails the build if anything resembling a real balance, contribution or ISIN appears in the
+repository. That check protects contributors' accounts, and it is also why you can
 read every fixture here without seeing anyone's holdings.
 </details>
 
@@ -264,8 +264,9 @@ read every fixture here without seeing anyone's holdings.
 
 - macOS 15 (Sequoia) or later, on Apple silicon or Intel
 - A Scalable Capital brokerage account
-- The official Scalable CLI (`sc`), installed with [Homebrew](https://brew.sh), allowlisted by
-  Scalable Capital and logged in. The app walks you through all three on first launch.
+- The official Scalable CLI (`sc`) **1.0 or newer**, installed with [Homebrew](https://brew.sh),
+  enabled on your Scalable account, and logged in. The app walks you through all three on first
+  launch.
 - Xcode 16 or an equivalent Swift 6 toolchain *(only when building from source)*
 
 ## Install
@@ -345,28 +346,29 @@ make install      # copies it to /Applications; needs an admin account
 
 ## Connecting to Scalable Capital
 
-The Scalable CLI is in beta and gated: Scalable Capital has to allowlist your machine before it can
-log in at all. That is a human round-trip that cannot be automated, so Zielzeit makes every step
-around it one tap.
+The Scalable CLI is gated on an account setting: CLI access has to be switched on in your Scalable
+profile before `sc login` will work at all. Since CLI 1.0 that switch is yours to flip — no email,
+no waiting on a reply — so Zielzeit's job is to say exactly where it is and make the rest one tap.
 
 <p align="center">
-  <img src="docs/setup.png" alt="Zielzeit's onboarding checklist: install the CLI, request beta access, sign in" width="344">
+  <img src="docs/setup.png" alt="Zielzeit's onboarding checklist: install the CLI, enable CLI access, sign in" width="344">
 </p>
 
 <details>
 <summary>Auf Deutsch</summary>
 <p align="center">
-  <img src="docs/setup-de.png" alt="The same onboarding checklist in German: Scalable CLI installieren, Beta-Zugang anfragen, Anmelden" width="344">
+  <img src="docs/setup-de.png" alt="The same onboarding checklist in German: Scalable CLI installieren, CLI-Zugriff aktivieren, Anmelden" width="344">
 </p>
 </details>
 
 1. **Install the CLI.** A copy button for `brew tap ScalableCapital/tap && brew install scalable-cli`.
-2. **Request beta access.** Zielzeit reads your installation code, and the Request access button
-   opens a prefilled email to `cli.beta@scalable.capital`. Nothing to compose.
-   ⚠️ **Send it from the email address registered with Scalable Capital.** They match the request to
-   your account by sender, and a request from any other address is silently never answered. A
-   `mailto:` link opens your default mail account, which often is not that one, so check the From
-   field.
+   Zielzeit's setup describes CLI 1.0 or newer.
+2. **Enable CLI access.** In your Scalable account, turn on **Profile › Security › Agentic
+   Investing**. The Open Scalable button takes you to the page.
+   ⚠️ **Do this before you sign in.** A login attempted first fails with an authentication error
+   that says nothing about a switch on a web page. Zielzeit cannot see the setting either — it is on
+   your account, not your Mac — so the step is ticked off by you, and nothing breaks if you tick it
+   early.
 3. **Sign in.** Run `sc login --local-read-only` yourself in Terminal. Zielzeit shows the command and
    can open Terminal with it typed but not executed.
 
