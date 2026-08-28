@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# Write the release notes for a tag to stdout.
+#
+#     Scripts/release-notes v2.0
+#
+# The shape is fixed, and it is the one every release from v1.0 on now uses:
+# what changed first — because Sparkle points "what's new" at this page, so
+# these notes are read by people deciding whether to update — then the compare
+# link, then the install and upgrade instructions folded away. Install steps
+# that never change do not belong at the top of every release; a reader who
+# already has the app has read them once.
+#
+# Categories come from the conventional-commit prefix. Anything unprefixed is
+# assumed to ship something and lands under Changed rather than being dropped:
+# a missing entry is worse than a miscategorised one. Prefixes that are
+# internal by definition are kept, but folded into a collapsed section.
+set -euo pipefail
+
+TAG=${1:?usage: Scripts/release-notes vX.Y}
+VERSION=${TAG#v}
+REPO=${GITHUB_REPOSITORY:-Mannafee/zielzeit-scalable-capital}
+
+PREV=$(git describe --tags --abbrev=0 --match 'v*' "$TAG^" 2>/dev/null || echo "")
+if [ -n "$PREV" ]; then
+    RANGE="$PREV..$TAG"
+    COMPARE="https://github.com/$REPO/compare/$PREV...$TAG"
+else
+    RANGE="$TAG"
+    COMPARE="https://github.com/$REPO/commits/$TAG"
+fi
+
+added=""; fixed=""; changed=""; internal=""
+
+# Merge commits carry "Merge pull request #N" as their subject, which says
+# nothing about what the branch held, and the version bump is bookkeeping the
+# reader can see in the tag.
+while IFS= read -r subject; do
+    [ -n "$subject" ] || continue
+    case "$subject" in
+        "chore: bump to"*) continue ;;
+    esac
+
+    # Strip the prefix and its optional scope for display: the section heading
+    # already says what kind of change it is.
+    text=$(printf '%s' "$subject" | sed -E 's/^[a-z]+(\([^)]*\))?!?: *//')
+    # Upper-cased with tr, not sed's \U, which is a GNU extension: macOS ships
+    # BSD sed, where \U is a literal U and every bullet came out as "Ufixed ...".
+    text="$(printf '%s' "${text:0:1}" | tr '[:lower:]' '[:upper:]')${text:1}"
+    line="- $text"$'\n'
+
+    case "$subject" in
+        *'!:'*)                                   changed+="$line" ;;
+        feat*|i18n*)                              added+="$line" ;;
+        fix*|perf*)                               fixed+="$line" ;;
+        docs*|ci*|chore*|test*|refactor*|build*|style*)
+                                                  internal+="$line" ;;
+        *)                                        changed+="$line" ;;
+    esac
+done < <(git log --no-merges --format='%s' "$RANGE")
+
+[ -n "$added"   ] && printf '### Added\n\n%s\n' "$added"
+[ -n "$changed" ] && printf '### Changed\n\n%s\n' "$changed"
+[ -n "$fixed"   ] && printf '### Fixed\n\n%s\n' "$fixed"
+
+if [ -n "$internal" ]; then
+    printf '<details>\n<summary><b>Internal</b> — docs, tests, tooling and refactors</summary>\n\n%s\n</details>\n\n' "$internal"
+fi
+
+cat <<EOF
+**Full changelog:** $COMPARE
+
+<details>
+<summary><b>Install</b> — first time on this Mac</summary>
+
+1. Download **Zielzeit.dmg** below, open it, and drag Zielzeit to Applications.
+2. Open it from Applications. macOS will say it "cannot be opened because Apple cannot check it for malicious software". That is expected: Zielzeit is open source and ad-hoc signed, but not notarized — notarizing needs a paid Apple Developer account.
+3. Go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**. You only do this once.
+
+Zielzeit then walks you through connecting to your Scalable Capital account. The [README](https://github.com/$REPO#readme) has the full setup, including the one Terminal step the Scalable CLI requires.
+</details>
+
+<details>
+<summary><b>Already have Zielzeit?</b></summary>
+
+Nothing to do. Zielzeit updates itself: version $VERSION downloads in the background and installs the next time you quit and reopen the app. **Check for Updates…** in the footer menu forces it now.
+</details>
+EOF

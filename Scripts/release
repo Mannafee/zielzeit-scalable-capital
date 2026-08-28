@@ -384,4 +384,13 @@ else
 fi
 
 say "Released v$NEW"
+
+# The workflow wrote the notes from the commit subjects (Scripts/release-notes),
+# which is a floor, not a ceiling: subjects are written for the next developer,
+# and these notes are read by a user deciding whether to update. Rewrite the
+# headline items in their words. Editing the body does not re-notify anyone.
+say "Review the notes — they are generated from commit subjects:"
+printf '    Scripts/release-notes v%s > notes.md && $EDITOR notes.md\n' "$NEW"
+printf '    gh release edit v%s --notes-file notes.md\n' "$NEW"
+
 gh release view "v$NEW" --json url -q .url
